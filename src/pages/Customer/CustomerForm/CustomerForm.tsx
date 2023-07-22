@@ -2,6 +2,8 @@ import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
 import { useCookies } from 'react-cookie';
+import CustomerHeader from '../../../components/CustmerHeader/CustomerHeader.tsx';
+import CustomerFooter from '../../../components/CustomerFooter/CustomerFooter.tsx';
 
 interface IFormInput {
   name: string;
@@ -40,7 +42,6 @@ export const CustomerForm = () => {
   const onSubmit: SubmitHandler<IFormInput> = (data) => {
     console.log(data);
     const id = uuidv4();
-    console.log(id, import.meta.env.VITE_COOKIE_NAME);
     setCookie(cookieName, id, { path: '/', maxAge: cookieMaxAge });
   };
 
@@ -50,15 +51,7 @@ export const CustomerForm = () => {
         textAlign: 'start',
       }}
     >
-      <Typography component="h2" variant="h5">
-        Живая очередь
-      </Typography>
-      <Typography component="p" mt={2}>
-        Шинный центр
-      </Typography>
-      <Typography component="p" mt={1}>
-        Москва, Загородное шоссе, д. 7, корп.1 (метро Тульская, Шаболовская)
-      </Typography>
+      <CustomerHeader />
       <Box mt={4}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Typography variant="subtitle1">Ваши данные</Typography>
@@ -150,8 +143,7 @@ export const CustomerForm = () => {
             )}
           />
           <Box mt={2}>
-            <Typography>Перед вами: 5</Typography>
-            <Typography>Примерное время ожидания: 30 минут</Typography>
+            <CustomerFooter />
           </Box>
           <Box
             mt={2}
