@@ -6,9 +6,10 @@ import CustomerFooter from '../../../components/CustomerFooter/CustomerFooter.ts
 import { ErrorMessage } from '../../../constants/ErrorMessage.ts';
 import { VALIDATION_REGEX } from '../../../constants/ValidationRegExp.ts';
 import { useAddRecordCustomerMutation, useGetShopAsCustomerQuery } from '../../../api/customer/CustomerApi.ts';
-import { CustomerStatus, INewCar } from '../../../api/queue/QueueApi.ts';
+import { INewCar } from '../../../api/queue/QueueApi.ts';
 import { shopId } from '../../../constants/ShopData.ts';
 import { useState } from 'react';
+import { CustomerStatus } from '../../../constants/StatusData.ts';
 
 interface IError {
   data: {

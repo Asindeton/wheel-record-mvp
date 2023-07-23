@@ -37,7 +37,9 @@ function EmployeeHeader() {
   };
 
   const handleCloseNavMenu = (page: IPage) => {
-    window.open(page.path, page.target);
+    if (page.path) {
+      window.open(page.path, page.target);
+    }
     setAnchorElNav(null);
   };
 

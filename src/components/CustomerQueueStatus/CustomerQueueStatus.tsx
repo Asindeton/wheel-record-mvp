@@ -1,6 +1,6 @@
 import { Box, Button, Typography } from '@mui/material';
 import CustomerFooter from '../CustomerFooter/CustomerFooter.tsx';
-import { CustomerStatus } from '../../api/queue/QueueApi.ts';
+import { CustomerStatus, StatusToColor } from '../../constants/StatusData.ts';
 
 interface CustomerQueueStatusProps {
   status?: CustomerStatus;
@@ -9,25 +9,25 @@ interface CustomerQueueStatusProps {
 
 const CustomerStatusList = {
   [CustomerStatus.new]: {
-    color: '#DEE222',
+    color: StatusToColor[CustomerStatus.new],
     body: 'Ожидайте приглашения',
     footer: <CustomerFooter />,
     actionText: 'Уйти из очереди',
   },
   [CustomerStatus.processed]: {
-    color: '#21A038',
+    color: StatusToColor[CustomerStatus.processed],
     body: 'Вас пригласили на пост №1',
     footer: 'Сейчас Ваша очередь.',
     actionText: 'Уйти из очереди',
   },
   [CustomerStatus.ready]: {
-    color: '#A274FF',
+    color: StatusToColor[CustomerStatus.ready],
     body: 'Машина готова',
     footer: 'Можете оплатить обслуживание и забрать машину.',
     actionText: '',
   },
   [CustomerStatus.finish]: {
-    color: '#ADADAD',
+    color: StatusToColor[CustomerStatus.finish],
     body: 'Запись выполнена',
     footer: 'Спасибо за посещение!',
     actionText: 'Встать в очередь',

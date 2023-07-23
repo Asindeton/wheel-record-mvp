@@ -1,12 +1,7 @@
 import { baseQuery } from '../shared/query.ts';
 import { createApi } from '@reduxjs/toolkit/query/react';
+import { CustomerStatus } from '../../constants/StatusData.ts';
 
-export enum CustomerStatus {
-  new = 'new',
-  processed = 'processed',
-  ready = 'ready',
-  finish = 'finish',
-}
 export interface ICar extends INewCar {
   id: number;
   post: number | null;

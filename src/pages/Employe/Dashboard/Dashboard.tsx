@@ -1,24 +1,30 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Grid, Typography } from '@mui/material';
 import { ICar, useGetQueueQuery } from '../../../api/queue/QueueApi.ts';
 import { useEffect, useMemo } from 'react';
 import { shopId } from '../../../constants/ShopData.ts';
+import DashboardWrapper from '../../../components/Dashboard/DashboardWrapper.tsx';
+import { CustomerStatus } from '../../../constants/StatusData.ts';
 
 interface IQueueItems {
-  invitedCars: ICar[];
+  newCars: ICar[];
+  processedCars: ICar[];
   readyCars: ICar[];
 }
-const initialState: IQueueItems = { invitedCars: [], readyCars: [] };
+const initialState: IQueueItems = { processedCars: [], readyCars: [], newCars: [] };
+
 export const Dashboard = () => {
   const { data } = useGetQueueQuery({ shop_id: shopId });
 
-  const { invitedCars, readyCars } = useMemo(() => {
+  const { processedCars, readyCars, newCars } = useMemo(() => {
     if (!data) return { ...initialState };
     return data.reduce(
       (acc, item) => {
-        if (item.status === 'invited') {
-          acc.invitedCars.push(item);
-        } else if (item.status === 'ready') {
+        if (item.status === CustomerStatus.processed) {
+          acc.processedCars.push(item);
+        } else if (item.status === CustomerStatus.ready) {
           acc.readyCars.push(item);
+        } else if (item.status === CustomerStatus.new) {
+          acc.newCars.push(item);
         }
         return acc;
       },
@@ -27,17 +33,25 @@ export const Dashboard = () => {
   }, [data]);
 
   useEffect(() => {
-    console.log(invitedCars, readyCars);
-  }, [invitedCars, readyCars]);
+    console.log({ processedCars, readyCars, newCars });
+  }, [processedCars, readyCars, newCars]);
 
   return (
-    <Box>
-      <Box>
-        <Typography>Приглашены</Typography>
-      </Box>
-      <Box>
-        <Typography>Машина готова</Typography>
-      </Box>
+    <Box sx={{ width: '100%' }}>
+      <Grid container spacing={8}>
+        <Grid xs={6} item>
+          <Typography variant={'h4'}>Приглашены</Typography>
+          <Box mt={2}>
+            <DashboardWrapper status={CustomerStatus.processed} items={processedCars} />
+          </Box>
+        </Grid>
+        <Grid xs={6} item>
+          <Typography variant={'h4'}>Машина готова</Typography>
+          <Box mt={2}>
+            <DashboardWrapper status={CustomerStatus.ready} items={readyCars} />
+          </Box>
+        </Grid>
+      </Grid>
     </Box>
   );
 };

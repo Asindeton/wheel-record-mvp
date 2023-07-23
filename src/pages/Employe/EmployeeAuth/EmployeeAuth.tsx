@@ -1,6 +1,5 @@
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { Alert, Box, Button, Snackbar, TextField, Typography } from '@mui/material';
-import ServiceData from '../../../components/ServiceData/ServiceData.tsx';
 import { ErrorMessage } from '../../../constants/ErrorMessage.ts';
 import { VALIDATION_REGEX } from '../../../constants/ValidationRegExp.ts';
 import { useLoginMutation } from '../../../api/auth/EmployeeAuthApi.ts';
@@ -54,10 +53,6 @@ export const EmployeeAuth = () => {
 
   return (
     <Box sx={{ maxWidth: 600, alignItems: 'center' }}>
-      <Box sx={{ textAlign: 'start' }}>
-        <ServiceData />
-      </Box>
-
       <Box mt={2}>
         <Typography variant={'h5'}>Войти в систему</Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
