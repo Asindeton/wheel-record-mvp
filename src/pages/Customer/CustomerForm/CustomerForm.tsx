@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { useCookies } from 'react-cookie';
 import CustomerHeader from '../../../components/CustmerHeader/CustomerHeader.tsx';
 import CustomerFooter from '../../../components/CustomerFooter/CustomerFooter.tsx';
+import { ErrorMessage } from '../../../constants/ErrorMessage.ts';
+import { VALIDATION_REGEX } from '../../../constants/ValidationRegExp.ts';
 
 interface IFormInput {
   name: string;
@@ -21,10 +23,8 @@ const defaultValues: IFormInput = {
   carModel: '',
 };
 
-const requiredMessage = 'Это поле обязательно';
 const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 const cookieMaxAge = import.meta.env.VITE_COOKIE_AGE ?? '43200';
-const phoneRegex = RegExp('^((\\+7|7|8)+([0-9]){10})$');
 
 export const CustomerForm = () => {
   const [, setCookie] = useCookies([cookieName]);
@@ -59,7 +59,7 @@ export const CustomerForm = () => {
             name="name"
             control={control}
             rules={{
-              required: requiredMessage,
+              required: ErrorMessage.required,
             }}
             render={({ field }) => (
               <TextField
@@ -77,9 +77,9 @@ export const CustomerForm = () => {
             name="phone"
             control={control}
             rules={{
-              required: requiredMessage,
+              required: ErrorMessage.required,
               pattern: {
-                value: phoneRegex,
+                value: VALIDATION_REGEX.phone,
                 message: 'Номер телефона должен быть в формате +7XXXXXXXXXX',
               },
             }}
@@ -110,7 +110,7 @@ export const CustomerForm = () => {
             name="carBrand"
             control={control}
             rules={{
-              required: requiredMessage,
+              required: ErrorMessage.required,
             }}
             render={({ field }) => (
               <TextField
@@ -128,7 +128,7 @@ export const CustomerForm = () => {
             name="carModel"
             control={control}
             rules={{
-              required: requiredMessage,
+              required: ErrorMessage.required,
             }}
             render={({ field }) => (
               <TextField

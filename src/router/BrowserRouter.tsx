@@ -3,15 +3,34 @@ import { MainPage } from '../pages';
 import { CustomerForm, CustomerQueue } from '../pages/Customer';
 import { useCookies } from 'react-cookie';
 import { redirect } from 'react-router-dom';
+import { Dashboard, EmployeeAuth } from '../pages/Employe';
+import { useAppSelector } from '../store/hooks.ts';
 
 const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 
 export const BrowserRouter = () => {
+  const token = useAppSelector((state) => state.auth.access_token);
   const [cookies] = useCookies([cookieName]);
   const router = createBrowserRouter([
     {
       path: '/',
       element: <MainPage />,
+      loader: () => checkAuth(token),
+    },
+    {
+      path: '/employees/login',
+      element: <EmployeeAuth />,
+      loader: () => {
+        if (token) {
+          return redirect(`/`);
+        }
+        return null;
+      },
+    },
+    {
+      path: '/dashboard',
+      element: <Dashboard />,
+      loader: () => checkAuth(token),
     },
     {
       path: '/customers',
@@ -36,7 +55,18 @@ export const BrowserRouter = () => {
         return null;
       },
     },
+    {
+      path: '*',
+      loader: () => redirect(`/`),
+    },
   ]);
 
   return <RouterProvider router={router} />;
+};
+
+const checkAuth = (token: string) => {
+  if (!token) {
+    return redirect(`/employees/login`);
+  }
+  return null;
 };
