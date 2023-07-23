@@ -1,27 +1,46 @@
 import { Box, Button, Typography } from '@mui/material';
 import CustomerFooter from '../CustomerFooter/CustomerFooter.tsx';
+import { CustomerStatus } from '../../api/queue/QueueApi.ts';
 
 interface CustomerQueueStatusProps {
-  status: number;
+  status?: CustomerStatus;
   getOutClickHandler: () => void;
 }
-const CustomerStatusList = [
-  { color: '#DEE222', body: 'Ожидайте приглашения', footer: <CustomerFooter />, actionText: 'Уйти из очереди' },
-  {
+
+const CustomerStatusList = {
+  [CustomerStatus.new]: {
+    color: '#DEE222',
+    body: 'Ожидайте приглашения',
+    footer: <CustomerFooter />,
+    actionText: 'Уйти из очереди',
+  },
+  [CustomerStatus.processed]: {
     color: '#21A038',
     body: 'Вас пригласили на пост №1',
     footer: 'Сейчас Ваша очередь.',
     actionText: 'Уйти из очереди',
   },
-  {
+  [CustomerStatus.ready]: {
     color: '#A274FF',
     body: 'Машина готова',
     footer: 'Можете оплатить обслуживание и забрать машину.',
+    actionText: '',
   },
-  { color: '#ADADAD', body: 'Запись выполнена', footer: 'Спасибо за посещение!', actionText: 'Встать в очередь' },
-];
+  [CustomerStatus.finish]: {
+    color: '#ADADAD',
+    body: 'Запись выполнена',
+    footer: 'Спасибо за посещение!',
+    actionText: 'Встать в очередь',
+  },
+};
 const CustomerQueueStatus = (props: CustomerQueueStatusProps) => {
-  const currentStatus = CustomerStatusList[Math.abs(props.status) % CustomerStatusList.length];
+  const { status, getOutClickHandler } = props;
+  const currentStatus = CustomerStatusList[status!];
+
+  if (!currentStatus) {
+    return null;
+  }
+
   return (
     <Box>
       <Box
@@ -41,9 +60,9 @@ const CustomerQueueStatus = (props: CustomerQueueStatusProps) => {
         </Typography>
       </Box>
       <Box mt={2}>{currentStatus.footer}</Box>
-      {currentStatus.actionText && (
+      {currentStatus?.actionText && (
         <Box mt={3}>
-          <Button variant="contained" fullWidth onClick={props.getOutClickHandler} color="error">
+          <Button variant="contained" fullWidth onClick={getOutClickHandler} color="error">
             {currentStatus.actionText}
           </Button>
         </Box>

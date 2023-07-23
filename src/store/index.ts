@@ -2,15 +2,23 @@ import { configureStore } from '@reduxjs/toolkit';
 import { employeeAuthApi } from '../api/auth/EmployeeAuthApi.ts';
 import authReducer, { checkToken } from '../pages/Employe/EmployeeAuth/authSlice.ts';
 import { shopApi } from '../api/shop/ShopApi.ts';
+import { queueApi } from '../api/queue/QueueApi.ts';
+import { customerApi } from '../api/customer/CustomerApi.ts';
 
 export const store = configureStore({
   reducer: {
+    [customerApi.reducerPath]: customerApi.reducer,
     [employeeAuthApi.reducerPath]: employeeAuthApi.reducer,
+    [queueApi.reducerPath]: queueApi.reducer,
     [shopApi.reducerPath]: shopApi.reducer,
     auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(employeeAuthApi.middleware).concat(shopApi.middleware),
+    getDefaultMiddleware()
+      .concat(customerApi.middleware)
+      .concat(employeeAuthApi.middleware)
+      .concat(shopApi.middleware)
+      .concat(queueApi.middleware),
 });
 
 store.dispatch(checkToken());

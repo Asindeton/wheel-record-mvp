@@ -7,6 +7,7 @@ import { useLoginMutation } from '../../../api/auth/EmployeeAuthApi.ts';
 import { useEffect, useState } from 'react';
 import { useAppDispatch } from '../../../store/hooks.ts';
 import { setCredentials } from './authSlice.ts';
+import FullScreenLoading from '../../../components/FullScreenLoading/FullScreenLoading.tsx';
 
 export interface LoginData {
   email: string;
@@ -20,7 +21,7 @@ const defaultValues: LoginData = {
 export const EmployeeAuth = () => {
   const dispatch = useAppDispatch();
   const [isOpenErrorSnackBar, setIsOpenErrorSnackBar] = useState<boolean>(false);
-  const [login, { isError }] = useLoginMutation();
+  const [login, { isError, isLoading }] = useLoginMutation();
 
   const {
     control,
@@ -115,6 +116,7 @@ export const EmployeeAuth = () => {
           Неверный логин или пароль
         </Alert>
       </Snackbar>
+      <FullScreenLoading open={isLoading} />
     </Box>
   );
 };

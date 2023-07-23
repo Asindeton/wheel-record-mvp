@@ -1,11 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQuery } from '../shared/query.ts';
 
-interface IGetShopRequestParams {
+export interface IGetShopRequestParams {
   id: number;
 }
 
-interface IGetShopResponse {
+export interface IGetShopResponse {
   id: number;
   name: string;
   posts_count: number;
