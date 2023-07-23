@@ -3,7 +3,7 @@ import { Typography } from '@mui/material';
 const ServiceData = ({ name }: { name?: string }) => {
   return (
     <>
-      <Typography component="p" mt={2}>
+      <Typography component="p" variant={'body2'} mt={2}>
         Шинный центр
       </Typography>
       {name && (

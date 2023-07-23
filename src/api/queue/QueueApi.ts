@@ -42,7 +42,15 @@ export const queueApi = createApi({
       }),
       providesTags: ['Queue'],
     }),
+    deleteRecord: builder.mutation<unknown, IGetCarRequestParams>({
+      query: (params) => ({
+        url: '/records/delete',
+        method: 'POST',
+        body: { ...params },
+      }),
+      invalidatesTags: ['Queue'],
+    }),
   }),
 });
 
-export const { useGetQueueQuery } = queueApi;
+export const { useGetQueueQuery, useDeleteRecordMutation } = queueApi;

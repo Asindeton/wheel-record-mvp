@@ -82,7 +82,7 @@ export const CustomerForm = () => {
       <CustomerHeader serviceName={shopData?.name} />
       <Box mt={4}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Typography variant="subtitle1">Ваши данные</Typography>
+          <Typography variant="body2">Ваши данные</Typography>
           <Controller
             name="name"
             control={control}
@@ -123,7 +123,7 @@ export const CustomerForm = () => {
               />
             )}
           />
-          <Typography variant="subtitle1" mt={3}>
+          <Typography variant="body2" mt={3}>
             Автомобиль
           </Typography>
           <Controller
@@ -133,7 +133,9 @@ export const CustomerForm = () => {
               <TextField {...field} variant="outlined" label="Госномер" fullWidth sx={{ marginTop: '10px' }} />
             )}
           />
-          <Typography variant="subtitle1">Если нет номера, пропустите поле</Typography>
+          <Typography variant="body2" fontStyle={'italic'}>
+            Если нет номера, пропустите поле
+          </Typography>
           <Controller
             name="carBrand"
             control={control}

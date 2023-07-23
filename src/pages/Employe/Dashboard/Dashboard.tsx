@@ -5,7 +5,7 @@ import { shopId } from '../../../constants/ShopData.ts';
 import DashboardWrapper from '../../../components/Dashboard/DashboardWrapper.tsx';
 import { CustomerStatus } from '../../../constants/StatusData.ts';
 
-interface IQueueItems {
+export interface IQueueItems {
   newCars: ICar[];
   processedCars: ICar[];
   readyCars: ICar[];
