@@ -9,6 +9,7 @@ import {
 } from '../../../api/customer/CustomerApi.ts';
 import { shopId } from '../../../constants/ShopData.ts';
 import FullScreenLoading from '../../../components/FullScreenLoading/FullScreenLoading.tsx';
+import { useEffect } from 'react';
 const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 
 export const CustomerQueue = () => {
@@ -25,6 +26,14 @@ export const CustomerQueue = () => {
       console.log(e);
     }
   };
+
+  useEffect(() => {
+    if (data !== undefined) {
+      if (Object.keys(data).length === 0) {
+        removeCookie(cookieName, { path: '/' });
+      }
+    }
+  }, [data]);
 
   return (
     <Box

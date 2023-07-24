@@ -1,3 +1,4 @@
+import { DraggableProvided, DraggableStateSnapshot } from 'react-beautiful-dnd';
 import { ICar } from '../../api/queue/QueueApi.ts';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { StatusToColor } from '../../constants/StatusData.ts';
@@ -17,13 +18,23 @@ interface ICarItemProps {
   item: ICar;
   deleteHandler?: (item: ICar) => void;
   notifyHandler?: (id: number) => void;
+  provided?: DraggableProvided;
+  snapshot?: DraggableStateSnapshot;
 }
-const CarItem = ({ item, deleteHandler, notifyHandler }: ICarItemProps) => {
+const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps) => {
   const { formatRelativeTime, formatDate, formatTime } = useIntl();
   const timeDiff = new Date(item.created_at).getTime() - new Date().getTime();
   const [time, timeUnit] = getRelativeTimeOptions(timeDiff);
   return (
-    <Box sx={{ borderRadius: '7px', padding: '15px', backgroundColor: StatusToColor[item.status] }}>
+    <Box
+      sx={{ borderRadius: '7px', padding: '15px', backgroundColor: StatusToColor[item.status] }}
+      ref={provided?.innerRef}
+      {...provided?.draggableProps}
+      {...provided?.dragHandleProps}
+      style={{
+        ...provided?.draggableProps.style,
+      }}
+    >
       <Stack>
         <Stack direction={'row'} justifyContent={'space-between'} alignItems={'start'}>
           <Box>
@@ -64,9 +75,11 @@ const CarItem = ({ item, deleteHandler, notifyHandler }: ICarItemProps) => {
           </Stack>
         </Box>
         {notifyHandler && (
-          <Button color={'error'} variant="outlined">
-            МАШИНА ГОТОВА
-          </Button>
+          <Box mt={2}>
+            <Button color={'error'} variant="outlined">
+              МАШИНА ГОТОВА
+            </Button>
+          </Box>
         )}
       </Stack>
     </Box>

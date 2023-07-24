@@ -1,0 +1,2 @@
+/api/*  https://api.dev.koleso-line.sebekon.ru/:splat  200!
+/* /index.html 200

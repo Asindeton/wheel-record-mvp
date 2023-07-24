@@ -1,6 +1,6 @@
 import EmployeeHeader from '../../components/EmployeeHeader/EmployeeHeader.tsx';
 import { useGetShopQuery } from '../../api/shop/ShopApi.ts';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { shopId } from '../../constants/ShopData.ts';
 import { Box, Grid, Stack, Typography } from '@mui/material';
 import EmployeeControlArea from '../../components/EmployeeControlArea/EmployeeControlArea.tsx';
@@ -10,6 +10,8 @@ import CarItem from '../../components/CarItem/CarItem.tsx';
 import Modal from '../../components/Modal/Modal.tsx';
 import ModalDeleteItemBody from '../../components/Modal/ModalDeleteItemBody.tsx';
 import ModalItemAction from '../../components/Modal/ModalItemAction.tsx';
+import { DragDropContext, Draggable, DraggableLocation, DropResult } from 'react-beautiful-dnd';
+import StrictModeDroppable from '../../components/StrictModeDroppable/StrictModeDroppable.tsx';
 
 export interface IQueueItems {
   newCars: ICar[];
@@ -23,6 +25,38 @@ interface IModalContext {
   message?: string;
 }
 
+const dropWight = {
+  newCars: 1,
+  processedCars: 2,
+  readyCars: 3,
+};
+
+const reorder = (list: Array<object>, startIndex: number, endIndex: number) => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+};
+
+const move = (
+  source: ICar[],
+  destination: ICar[],
+  droppableSource: DraggableLocation,
+  droppableDestination: DraggableLocation,
+) => {
+  const sourceClone = Array.from(source!);
+  const destClone = Array.from(destination!);
+  const [removed] = sourceClone.splice(droppableSource.index, 1);
+
+  destClone.splice(droppableDestination.index, 0, removed);
+
+  return {
+    [droppableSource.droppableId]: sourceClone,
+    [droppableDestination.droppableId]: destClone,
+  };
+};
+
 export const MainPage = () => {
   const [deleteRecord] = useDeleteRecordMutation();
   const { data: shopData } = useGetShopQuery({ id: shopId });
@@ -30,22 +64,27 @@ export const MainPage = () => {
   const initialState: IQueueItems = { processedCars: [], readyCars: [], newCars: [] };
   const [modalContext, setModalContext] = useState<IModalContext | null>(null);
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
+  const [list, setList] = useState<IQueueItems>({
+    ...initialState,
+  });
 
-  const { processedCars, readyCars, newCars } = useMemo(() => {
-    if (!data) return { ...initialState };
-    return data.reduce(
-      (acc, item) => {
-        if (item.status === CustomerStatus.processed) {
-          acc.processedCars.push(item);
-        } else if (item.status === CustomerStatus.ready) {
-          acc.readyCars.push(item);
-        } else if (item.status === CustomerStatus.new) {
-          acc.newCars.push(item);
-        }
-        return acc;
-      },
-      { ...initialState },
-    );
+  useEffect(() => {
+    if (data) {
+      const { processedCars, readyCars, newCars } = data.reduce(
+        (acc, item) => {
+          if (item.status === CustomerStatus.processed) {
+            acc.processedCars.push(item);
+          } else if (item.status === CustomerStatus.ready) {
+            acc.readyCars.push(item);
+          } else if (item.status === CustomerStatus.new) {
+            acc.newCars.push(item);
+          }
+          return acc;
+        },
+        { ...initialState },
+      );
+      setList({ processedCars, readyCars, newCars });
+    }
   }, [data]);
 
   useEffect(() => {
@@ -87,6 +126,64 @@ export const MainPage = () => {
     console.log('notifyHandler', id);
   };
 
+  const onDragEnd = (result: DropResult) => {
+    const { source, destination } = result;
+    const sourceWeight = dropWight[source.droppableId as keyof typeof dropWight];
+    const destinationWeight = dropWight[destination?.droppableId as keyof typeof dropWight];
+    if (!destination) return;
+    if (sourceWeight === destinationWeight) {
+      setList((prevState) => {
+        const newData = reorder(
+          prevState[source.droppableId as keyof typeof prevState],
+          source.index,
+          destination.index,
+        );
+        return {
+          ...prevState,
+          [source.droppableId!]: newData,
+        };
+      });
+    }
+    if (source.droppableId !== destination.droppableId) {
+      if (destinationWeight > sourceWeight) {
+        // move up
+
+        setList((prevState) => {
+          const newData = move(
+            prevState[source.droppableId as keyof typeof prevState],
+            prevState[destination.droppableId as keyof typeof prevState],
+            source,
+            destination,
+          );
+          console.log({ newData, result });
+          return {
+            ...prevState,
+            [source.droppableId!]: newData[source.droppableId!],
+            [destination.droppableId!]: newData[destination.droppableId!],
+            // [destination.droppableId!]: newData[destination.droppableId!].map((el, index) => {
+            //   if (index === destination.index) {
+            //     const newStatus =
+            //       destination.droppableId === 'processedCars' ? CustomerStatus.processed : CustomerStatus.ready;
+            //     console.log(destination.droppableId);
+            //     return {
+            //       ...el,
+            //       status: newStatus,
+            //     };
+            //   }
+            // }),
+          };
+        });
+      } else {
+        // move down
+        return;
+      }
+    }
+  };
+
+  useEffect(() => {
+    console.log({ list });
+  }, [list]);
+
   return (
     <>
       <EmployeeHeader />
@@ -95,38 +192,98 @@ export const MainPage = () => {
           <EmployeeControlArea shopData={shopData} />
         </Box>
         <Box mt={5}>
-          <Grid container columnSpacing={{ xs: 1, sm: 3, md: 12 }}>
-            <Grid item xs={4}>
-              <Typography variant={'h5'}>Ожидают: {newCars.length}</Typography>
-              <Stack direction={'column'} gap={2} mt={4}>
-                {newCars.map((item) => {
-                  return (
-                    <CarItem
-                      item={item}
-                      key={item.id + '_' + item.contact_name}
-                      deleteHandler={selectDeleteItemHandler}
-                    />
-                  );
-                })}
-              </Stack>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Grid container columnSpacing={{ xs: 1, sm: 3, md: 12 }}>
+              <Grid item xs={4}>
+                <Typography variant={'h5'}>Ожидают: {list.newCars.length}</Typography>
+                <StrictModeDroppable droppableId="newCars">
+                  {(providedDroppable) => (
+                    <Stack
+                      direction={'column'}
+                      gap={2}
+                      mt={4}
+                      {...providedDroppable.droppableProps}
+                      ref={providedDroppable.innerRef}
+                    >
+                      {list.newCars.map((item, index) => {
+                        return (
+                          <Draggable key={item.id} draggableId={item.id + '_' + item.contact_name} index={index}>
+                            {(providedDraggable, snapshotDraggable) => (
+                              <CarItem
+                                provided={providedDraggable}
+                                snapshot={snapshotDraggable}
+                                item={item}
+                                deleteHandler={selectDeleteItemHandler}
+                              />
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {providedDroppable.placeholder}
+                    </Stack>
+                  )}
+                </StrictModeDroppable>
+              </Grid>
+
+              <Grid item xs={4}>
+                <Typography variant={'h5'}>Приглашены: {list.processedCars.length}</Typography>
+                <StrictModeDroppable droppableId="processedCars">
+                  {(providedDroppable) => (
+                    <Stack
+                      direction={'column'}
+                      gap={2}
+                      mt={4}
+                      {...providedDroppable.droppableProps}
+                      ref={providedDroppable.innerRef}
+                    >
+                      {list.processedCars.map((item, index) => {
+                        return (
+                          <Draggable key={item.id} draggableId={item.id + '_' + item.contact_name} index={index}>
+                            {(providedDraggable, snapshotDraggable) => (
+                              <CarItem provided={providedDraggable} snapshot={snapshotDraggable} item={item} />
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {providedDroppable.placeholder}
+                    </Stack>
+                  )}
+                </StrictModeDroppable>
+              </Grid>
+
+              <Grid item xs={4}>
+                <Typography variant={'h5'}>Завершены: {list.readyCars.length}</Typography>
+                <StrictModeDroppable droppableId="readyCars">
+                  {(providedDroppable) => (
+                    <Stack
+                      direction={'column'}
+                      gap={2}
+                      mt={4}
+                      {...providedDroppable.droppableProps}
+                      ref={providedDroppable.innerRef}
+                    >
+                      {list.readyCars.map((item, index) => {
+                        return (
+                          <Draggable key={item.id} draggableId={item.id + '_' + item.contact_name} index={index}>
+                            {(providedDraggable, snapshotDraggable) => (
+                              <CarItem
+                                provided={providedDraggable}
+                                snapshot={snapshotDraggable}
+                                item={item}
+                                key={item.id + '_' + item.contact_name}
+                                notifyHandler={notifyHandler}
+                              />
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {providedDroppable.placeholder}
+                    </Stack>
+                  )}
+                </StrictModeDroppable>
+              </Grid>
             </Grid>
-            <Grid item xs={4}>
-              <Typography variant={'h5'}>Приглашены: {processedCars.length}</Typography>
-              <Stack direction={'column'} gap={2} mt={4}>
-                {processedCars.map((item) => {
-                  return <CarItem item={item} key={item.id + '_' + item.contact_name} />;
-                })}
-              </Stack>
-            </Grid>
-            <Grid item xs={4}>
-              <Typography variant={'h5'}>Завершены: {readyCars.length}</Typography>
-              <Stack direction={'column'} gap={2} mt={4}>
-                {readyCars.map((item) => {
-                  return <CarItem item={item} key={item.id + '_' + item.contact_name} notifyHandler={notifyHandler} />;
-                })}
-              </Stack>
-            </Grid>
-          </Grid>
+          </DragDropContext>
         </Box>
         <Modal
           isOpen={isModalOpen}
