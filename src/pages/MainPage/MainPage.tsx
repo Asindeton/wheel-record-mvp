@@ -1,36 +1,50 @@
-import EmployeeHeader from '../../components/EmployeeHeader/EmployeeHeader.tsx';
 import { useGetShopQuery } from '../../api/shop/ShopApi.ts';
 import { useEffect, useState } from 'react';
 import { shopId } from '../../constants/ShopData.ts';
-import { Box, Grid, Stack, Typography } from '@mui/material';
+import { Box, Button, Grid, Stack, Typography } from '@mui/material';
 import EmployeeControlArea from '../../components/EmployeeControlArea/EmployeeControlArea.tsx';
 import { CustomerStatus } from '../../constants/StatusData.ts';
-import { ICar, useDeleteRecordMutation, useGetQueueQuery } from '../../api/queue/QueueApi.ts';
+import {
+  ICar,
+  IUpdateCarRequestParams,
+  useDeleteRecordMutation,
+  useEditQueueMutation,
+  useGetQueueQuery,
+} from '../../api/queue/QueueApi.ts';
 import CarItem from '../../components/CarItem/CarItem.tsx';
 import Modal from '../../components/Modal/Modal.tsx';
 import ModalDeleteItemBody from '../../components/Modal/ModalDeleteItemBody.tsx';
 import ModalItemAction from '../../components/Modal/ModalItemAction.tsx';
 import { DragDropContext, Draggable, DraggableLocation, DropResult } from 'react-beautiful-dnd';
 import StrictModeDroppable from '../../components/StrictModeDroppable/StrictModeDroppable.tsx';
+import { useSearchParams } from 'react-router-dom';
+import { useGetPostsQuery } from '../../api/post/PostApi.ts';
+import CustomerForm from '../Customer/CustomerForm/CustomerForm.tsx';
 
 export interface IQueueItems {
   newCars: ICar[];
   processedCars: ICar[];
-  readyCars: ICar[];
+  finishCars: ICar[];
 }
 
 interface IModalContext {
   data: ICar | null;
-  type: 'delete' | 'notify' | null;
+  type: 'delete' | 'notify' | 'create' | null;
   message?: string;
 }
 
 const dropWight = {
   newCars: 1,
   processedCars: 2,
-  readyCars: 3,
+  finishCars: 3,
 };
 
+const sortListHelper = (list: ICar[]): ICar[] => {
+  return list.sort((a, b) => a.sort - b.sort);
+};
+const getDroppableId = (id: string) => {
+  return id.includes('_') ? id.split('_')[0] : id;
+};
 const reorder = (list: Array<object>, startIndex: number, endIndex: number) => {
   const result = Array.from(list);
   const [removed] = result.splice(startIndex, 1);
@@ -52,55 +66,52 @@ const move = (
   destClone.splice(droppableDestination.index, 0, removed);
 
   return {
-    [droppableSource.droppableId]: sourceClone,
-    [droppableDestination.droppableId]: destClone,
+    [getDroppableId(droppableSource.droppableId)]: sourceClone,
+    [getDroppableId(droppableDestination.droppableId)]: destClone,
   };
 };
 
 export const MainPage = () => {
+  const [searchParams] = useSearchParams();
+  const queryShopId = Number(searchParams.get('shop_id')) ?? shopId;
   const [deleteRecord] = useDeleteRecordMutation();
-  const { data: shopData } = useGetShopQuery({ id: shopId });
-  const { data } = useGetQueueQuery({ shop_id: shopId });
-  const initialState: IQueueItems = { processedCars: [], readyCars: [], newCars: [] };
+  const [editRecord] = useEditQueueMutation();
+  const { data: shopData } = useGetShopQuery({ id: queryShopId });
+  const { data: postData } = useGetPostsQuery({ shop_id: queryShopId });
+  const { data } = useGetQueueQuery({ shop_id: queryShopId }, { pollingInterval: 3000 });
+  const initialState: IQueueItems = { processedCars: [], finishCars: [], newCars: [] };
   const [modalContext, setModalContext] = useState<IModalContext | null>(null);
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
   const [list, setList] = useState<IQueueItems>({
     ...initialState,
   });
 
-  useEffect(() => {
-    if (data) {
-      const { processedCars, readyCars, newCars } = data.reduce(
-        (acc, item) => {
-          if (item.status === CustomerStatus.processed) {
-            acc.processedCars.push(item);
-          } else if (item.status === CustomerStatus.ready) {
-            acc.readyCars.push(item);
-          } else if (item.status === CustomerStatus.new) {
-            acc.newCars.push(item);
-          }
-          return acc;
-        },
-        { ...initialState },
-      );
-      setList({ processedCars, readyCars, newCars });
+  const updateRecord = async (item: ICar, newStatus?: CustomerStatus, sort?: number) => {
+    try {
+      const requestData: IUpdateCarRequestParams = {
+        ...item,
+        status: newStatus ?? item.status,
+        sort: sort ?? item.sort,
+      };
+      await editRecord(requestData);
+    } catch (e) {
+      console.log(e);
     }
-  }, [data]);
-
-  useEffect(() => {
-    document.body.classList.add('main-page');
-    document.body.querySelector('#root')?.classList.add('main-page');
-    return () => {
-      document.body.classList.remove('main-page');
-      document.body.querySelector('#root')?.classList.remove('main-page');
-    };
-  }, []);
-
+  };
   const cancelHandler = () => {
     setModalOpen(false);
     setTimeout(() => {
       setModalContext(null);
     }, 300);
+  };
+
+  const createNewRecord = async () => {
+    setModalContext({
+      type: 'create',
+      data: null,
+      message: 'Добавить в очередь',
+    });
+    setModalOpen(true);
   };
   const selectDeleteItemHandler = (item: ICar) => {
     setModalContext({
@@ -122,55 +133,78 @@ export const MainPage = () => {
     }
   };
 
-  const notifyHandler = async (id: number) => {
-    console.log('notifyHandler', id);
+  const notifyHandler = async (item: ICar) => {
+    updateRecord(item, CustomerStatus.processed);
   };
 
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
-    const sourceWeight = dropWight[source.droppableId as keyof typeof dropWight];
-    const destinationWeight = dropWight[destination?.droppableId as keyof typeof dropWight];
     if (!destination) return;
+
+    const sourceId = getDroppableId(source?.droppableId);
+    const destinationId = getDroppableId(destination?.droppableId);
+
+    const sourceWeight = dropWight[sourceId as keyof typeof dropWight];
+    const destinationWeight = dropWight[destinationId as keyof typeof dropWight];
+
     if (sourceWeight === destinationWeight) {
       setList((prevState) => {
-        const newData = reorder(
-          prevState[source.droppableId as keyof typeof prevState],
-          source.index,
-          destination.index,
-        );
+        const newData = reorder(prevState[sourceId as keyof typeof prevState], source.index, destination.index);
         return {
           ...prevState,
-          [source.droppableId!]: newData,
+          [sourceId!]: newData.map((item, index) => {
+            if ((item as ICar).sort === index + 1) return item;
+            updateRecord(item as ICar, (item as ICar).status, index + 1);
+            return {
+              ...item,
+              sort: index + 1,
+            };
+          }),
         };
       });
     }
-    if (source.droppableId !== destination.droppableId) {
+
+    if (sourceId !== destinationId) {
       if (destinationWeight > sourceWeight) {
         // move up
+        const post_id = Number(destination?.droppableId.split('_')[1]);
 
         setList((prevState) => {
           const newData = move(
-            prevState[source.droppableId as keyof typeof prevState],
-            prevState[destination.droppableId as keyof typeof prevState],
+            prevState[sourceId as keyof typeof prevState],
+            prevState[destinationId as keyof typeof prevState],
             source,
             destination,
           );
-          console.log({ newData, result });
+
+          let transformDestination = newData[destinationId!];
+
+          if (!isNaN(post_id)) {
+            transformDestination = newData[destinationId!].map((item, index) => {
+              if (index === destination.index) {
+                return {
+                  ...item,
+                  post_id,
+                };
+              }
+              return item;
+            });
+          }
+
           return {
             ...prevState,
-            [source.droppableId!]: newData[source.droppableId!],
-            [destination.droppableId!]: newData[destination.droppableId!],
-            // [destination.droppableId!]: newData[destination.droppableId!].map((el, index) => {
-            //   if (index === destination.index) {
-            //     const newStatus =
-            //       destination.droppableId === 'processedCars' ? CustomerStatus.processed : CustomerStatus.ready;
-            //     console.log(destination.droppableId);
-            //     return {
-            //       ...el,
-            //       status: newStatus,
-            //     };
-            //   }
-            // }),
+            [sourceId!]: newData[sourceId!],
+            [destinationId!]: transformDestination.map((item) => {
+              const newStatus = destinationId.replace('Cars', '');
+              if (item.status !== newStatus) {
+                updateRecord(item, CustomerStatus[newStatus as keyof typeof CustomerStatus]);
+                return {
+                  ...item,
+                  status: CustomerStatus[newStatus as keyof typeof CustomerStatus],
+                };
+              }
+              return item;
+            }),
           };
         });
       } else {
@@ -181,15 +215,42 @@ export const MainPage = () => {
   };
 
   useEffect(() => {
-    console.log({ list });
-  }, [list]);
+    if (data) {
+      const { processedCars, finishCars, newCars } = data.reduce(
+        (acc, item) => {
+          if (item.status === CustomerStatus.processed) {
+            acc.processedCars.push(item);
+          } else if (item.status === CustomerStatus.finish) {
+            acc.finishCars.push(item);
+          } else if (item.status === CustomerStatus.new) {
+            acc.newCars.push(item);
+          }
+          return acc;
+        },
+        { ...initialState },
+      );
+      setList({
+        processedCars: sortListHelper(processedCars),
+        finishCars: sortListHelper(finishCars),
+        newCars: sortListHelper(newCars),
+      });
+    }
+  }, [data]);
+
+  useEffect(() => {
+    document.body.classList.add('main-page');
+    document.body.querySelector('#root')?.classList.add('main-page');
+    return () => {
+      document.body.classList.remove('main-page');
+      document.body.querySelector('#root')?.classList.remove('main-page');
+    };
+  }, []);
 
   return (
     <>
-      <EmployeeHeader />
       <Box sx={{ maxWidth: '1440px', margin: '0 auto', padding: '2rem 1rem' }}>
         <Box>
-          <EmployeeControlArea shopData={shopData} />
+          <EmployeeControlArea shopData={shopData} createNewRecordHandler={createNewRecord} />
         </Box>
         <Box mt={5}>
           <DragDropContext onDragEnd={onDragEnd}>
@@ -227,33 +288,57 @@ export const MainPage = () => {
 
               <Grid item xs={4}>
                 <Typography variant={'h5'}>Приглашены: {list.processedCars.length}</Typography>
-                <StrictModeDroppable droppableId="processedCars">
-                  {(providedDroppable) => (
-                    <Stack
-                      direction={'column'}
-                      gap={2}
-                      mt={4}
-                      {...providedDroppable.droppableProps}
-                      ref={providedDroppable.innerRef}
-                    >
-                      {list.processedCars.map((item, index) => {
-                        return (
-                          <Draggable key={item.id} draggableId={item.id + '_' + item.contact_name} index={index}>
-                            {(providedDraggable, snapshotDraggable) => (
-                              <CarItem provided={providedDraggable} snapshot={snapshotDraggable} item={item} />
-                            )}
-                          </Draggable>
-                        );
-                      })}
-                      {providedDroppable.placeholder}
-                    </Stack>
-                  )}
-                </StrictModeDroppable>
+                <Stack direction={'column'} gap={2} mt={4}>
+                  {postData?.map((item) => {
+                    const filteredCars = list.processedCars.filter((el) => el.post_id === item.id);
+                    return (
+                      <Stack>
+                        <Stack key={item.id} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                          <Typography variant={'h6'}>Пост {item.number}</Typography>
+                          <Button color={'error'} variant={'contained'}>
+                            ПОЗВАТЬ СЛЕДУЮЩЕГО
+                          </Button>
+                        </Stack>
+                        <StrictModeDroppable droppableId={'processedCars_' + item.id}>
+                          {(providedDroppable) => (
+                            <Stack
+                              direction={'column'}
+                              gap={2}
+                              mt={4}
+                              {...providedDroppable.droppableProps}
+                              ref={providedDroppable.innerRef}
+                            >
+                              {filteredCars.map((item, index) => {
+                                return (
+                                  <Draggable
+                                    key={item.id}
+                                    draggableId={item.id + '_' + item.contact_name}
+                                    index={index}
+                                  >
+                                    {(providedDraggable, snapshotDraggable) => (
+                                      <CarItem
+                                        provided={providedDraggable}
+                                        snapshot={snapshotDraggable}
+                                        item={item}
+                                        notifyHandler={notifyHandler}
+                                      />
+                                    )}
+                                  </Draggable>
+                                );
+                              })}
+                              {providedDroppable.placeholder}
+                            </Stack>
+                          )}
+                        </StrictModeDroppable>
+                      </Stack>
+                    );
+                  })}
+                </Stack>
               </Grid>
 
               <Grid item xs={4}>
-                <Typography variant={'h5'}>Завершены: {list.readyCars.length}</Typography>
-                <StrictModeDroppable droppableId="readyCars">
+                <Typography variant={'h5'}>Завершены: {list.finishCars.length}</Typography>
+                <StrictModeDroppable droppableId="finishCars">
                   {(providedDroppable) => (
                     <Stack
                       direction={'column'}
@@ -262,7 +347,7 @@ export const MainPage = () => {
                       {...providedDroppable.droppableProps}
                       ref={providedDroppable.innerRef}
                     >
-                      {list.readyCars.map((item, index) => {
+                      {list.finishCars.map((item, index) => {
                         return (
                           <Draggable key={item.id} draggableId={item.id + '_' + item.contact_name} index={index}>
                             {(providedDraggable, snapshotDraggable) => (
@@ -271,7 +356,6 @@ export const MainPage = () => {
                                 snapshot={snapshotDraggable}
                                 item={item}
                                 key={item.id + '_' + item.contact_name}
-                                notifyHandler={notifyHandler}
                               />
                             )}
                           </Draggable>
@@ -289,19 +373,39 @@ export const MainPage = () => {
           isOpen={isModalOpen}
           setIsOpen={setModalOpen}
           title={modalContext?.message}
-          text={<ModalDeleteItemBody item={modalContext?.data ?? null} subTitle={''} />}
-          actions={
-            <ModalItemAction
-              cancelHandler={() => {
-                cancelHandler();
-              }}
-              acceptHandler={() => {
-                if (modalContext?.data) {
-                  deleteHandler(modalContext?.data?.id);
-                }
-              }}
-            />
-          }
+          text={() => {
+            if (modalContext?.type === 'delete') {
+              return <ModalDeleteItemBody item={modalContext?.data ?? null} subTitle={''} />;
+            }
+            if (modalContext?.type === 'create') {
+              return (
+                <CustomerForm
+                  isEmployee={true}
+                  cancelHandler={() => {
+                    cancelHandler();
+                  }}
+                />
+              );
+            }
+            return '';
+          }}
+          actions={() => {
+            if (modalContext?.type === 'delete') {
+              return (
+                <ModalItemAction
+                  cancelHandler={() => {
+                    cancelHandler();
+                  }}
+                  acceptHandler={() => {
+                    if (modalContext?.data) {
+                      deleteHandler(modalContext?.data?.id);
+                    }
+                  }}
+                />
+              );
+            }
+            return null;
+          }}
         />
       </Box>
     </>

@@ -5,9 +5,9 @@ import { Dispatch, ReactNode, SetStateAction } from 'react';
 
 interface IModalContent {
   title?: string | ReactNode;
-  text?: string | ReactNode;
+  text: () => JSX.Element | string | ReactNode;
   customTextContainer?: boolean;
-  actions?: ReactNode | ReactNode[];
+  actions: () => JSX.Element | null | ReactNode;
 }
 
 export type IModal = {
@@ -30,10 +30,12 @@ const Modal = (props: IModal) => {
         <DialogTitle component={'h4'} textAlign={'center'}>
           {props.title}
         </DialogTitle>
-        {props.text}
-        <Box mt={5}>
-          <DialogActions>{props.actions}</DialogActions>
-        </Box>
+        {props.text()}
+        {props.actions() && (
+          <Box mt={5}>
+            <DialogActions>{props.actions()}</DialogActions>
+          </Box>
+        )}
       </DialogContent>
       <DialogActions sx={{ padding: 0, position: 'absolute', right: '24px', top: '24px' }}>
         <IconButton aria-label="close" onClick={handleClose} disableRipple={true}>

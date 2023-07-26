@@ -21,7 +21,6 @@ const slice = createSlice({
     checkToken: (state) => {
       const token = import.meta.env.VITE_AUTH_TOKEN;
       const token_type = import.meta.env.VITE_AUTH_TYPE;
-      console.log('token', token);
       if (token && token_type) {
         state.access_token = token;
         state.token_type = token_type;

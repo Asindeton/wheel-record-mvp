@@ -14,7 +14,7 @@ const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 
 export const CustomerQueue = () => {
   const [cookie, , removeCookie] = useCookies([cookieName]);
-  const { data, isLoading } = useGetRecordCustomerQuery({ id: cookie[cookieName] });
+  const { data, isLoading } = useGetRecordCustomerQuery({ id: cookie[cookieName] }, { pollingInterval: 3000 });
   const { data: shopData, isLoading: isLoadingShopData } = useGetShopAsCustomerQuery({ id: shopId });
   const [deleteRecord, { isLoading: isLoadingDelete }] = useDeleteRecordCustomerMutation();
 
@@ -43,7 +43,7 @@ export const CustomerQueue = () => {
     >
       <CustomerHeader serviceName={shopData?.name} />
       <Box mt={2}>
-        <CustomerQueueStatus status={data?.status} getOutClickHandler={getOutClickHandler} />
+        <CustomerQueueStatus status={data?.status} getOutClickHandler={getOutClickHandler} data={data} />
       </Box>
       <FullScreenLoading open={isLoading || isLoadingShopData || isLoadingDelete} />
     </Box>

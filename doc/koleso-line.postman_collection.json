@@ -96,7 +96,7 @@
 							"urlencoded": [
 								{
 									"key": "shop_id",
-									"value": "2",
+									"value": "7",
 									"type": "text"
 								},
 								{
@@ -106,7 +106,7 @@
 								},
 								{
 									"key": "contact_phone",
-									"value": "+7 999 466 8763",
+									"value": "+7 999 466 87696",
 									"type": "text"
 								},
 								{
@@ -127,6 +127,12 @@
 								{
 									"key": "status",
 									"value": "new",
+									"type": "text"
+								},
+								{
+									"key": "type",
+									"value": "client",
+									"description": "client, manager",
 									"type": "text"
 								}
 							]
@@ -157,6 +163,48 @@
 							]
 						},
 						"url": "https://api.dev.koleso-line.sebekon.ru/records/get"
+					},
+					"response": []
+				},
+				{
+					"name": "edit",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXBpLmRldi5rb2xlc28tbGluZS5zZWJla29uLnJ1XC9hcGlcL2F1dGhcL2xvZ2luIiwiaWF0IjoxNjg5Njc0MTI2LCJleHAiOjIwMTEwODIxMjYsIm5iZiI6MTY4OTY3NDEyNiwianRpIjoiWmU5N2RHN1R6OXE4YTloSCIsInN1YiI6MSwicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.cbsX8Y6kURKGc76ggBFiYrABdFPSEnkqcnWTIkw2SN8"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "id",
+									"value": "39",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "ready",
+									"description": "new, processed, ready, finish",
+									"type": "text"
+								},
+								{
+									"key": "post_id",
+									"value": "5",
+									"type": "text"
+								},
+								{
+									"key": "sort",
+									"value": "300",
+									"description": "default 500",
+									"type": "text"
+								}
+							]
+						},
+						"url": "https://api.dev.koleso-line.sebekon.ru/records/edit"
 					},
 					"response": []
 				},
@@ -237,6 +285,36 @@
 							]
 						},
 						"url": "https://api.dev.koleso-line.sebekon.ru/shops/get"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "post",
+			"item": [
+				{
+					"name": "get",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvYXBpLmRldi5rb2xlc28tbGluZS5zZWJla29uLnJ1XC9hcGlcL2F1dGhcL2xvZ2luIiwiaWF0IjoxNjg5Njc0MTI2LCJleHAiOjIwMTEwODIxMjYsIm5iZiI6MTY4OTY3NDEyNiwianRpIjoiWmU5N2RHN1R6OXE4YTloSCIsInN1YiI6MSwicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.cbsX8Y6kURKGc76ggBFiYrABdFPSEnkqcnWTIkw2SN8"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "shop_id",
+									"value": "2",
+									"type": "text"
+								}
+							]
+						},
+						"url": "https://api.dev.koleso-line.sebekon.ru/posts/get"
 					},
 					"response": []
 				}

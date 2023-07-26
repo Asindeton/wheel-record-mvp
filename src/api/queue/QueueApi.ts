@@ -4,13 +4,14 @@ import { CustomerStatus } from '../../constants/StatusData.ts';
 
 export interface ICar extends INewCar {
   id: number;
-  post: number | null;
+  post_id: number | null;
   number: number | null;
   active: number;
   sort: number;
   created_at: string;
   updated_at: string;
 }
+export type CreateFrom = 'client' | 'manager';
 
 export interface INewCar {
   shop_id: number;
@@ -20,6 +21,7 @@ export interface INewCar {
   car_model: string;
   car_number: string;
   status: CustomerStatus;
+  type: CreateFrom;
 }
 interface IGetQueueRequestParams {
   shop_id: number;
@@ -27,6 +29,14 @@ interface IGetQueueRequestParams {
 export interface IGetCarRequestParams {
   id: number;
 }
+
+export interface IUpdateCarRequestParams {
+  id: number;
+  status: CustomerStatus;
+  post_id: number | null;
+  sort: number;
+}
+
 export const queueApi = createApi({
   reducerPath: 'queueApi',
   baseQuery: baseQuery,
@@ -42,6 +52,16 @@ export const queueApi = createApi({
       }),
       providesTags: ['Queue'],
     }),
+    editQueue: builder.mutation<boolean, IUpdateCarRequestParams>({
+      query: (params) => ({
+        url: '/records/edit',
+        method: 'POST',
+        body: { ...params },
+        // method: 'GET',
+        // params,
+      }),
+      invalidatesTags: ['Queue'],
+    }),
     deleteRecord: builder.mutation<unknown, IGetCarRequestParams>({
       query: (params) => ({
         url: '/records/delete',
@@ -53,4 +73,4 @@ export const queueApi = createApi({
   }),
 });
 
-export const { useGetQueueQuery, useDeleteRecordMutation } = queueApi;
+export const { useGetQueueQuery, useDeleteRecordMutation, useEditQueueMutation } = queueApi;

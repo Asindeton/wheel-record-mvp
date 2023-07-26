@@ -3,6 +3,7 @@ import { Box, Button, Grid, Stack, Typography } from '@mui/material';
 
 interface IEmployeeControlAreaProps {
   shopData?: IGetShopResponse;
+  createNewRecordHandler: () => void;
 }
 const EmployeeControlArea = (props: IEmployeeControlAreaProps) => {
   return (
@@ -11,7 +12,13 @@ const EmployeeControlArea = (props: IEmployeeControlAreaProps) => {
         <Stack>
           <Typography variant={'h5'}>Живая очередь</Typography>
           <Box mt={2}>
-            <Button color={'error'} variant={'contained'}>
+            <Button
+              color={'error'}
+              variant={'contained'}
+              onClick={() => {
+                props.createNewRecordHandler();
+              }}
+            >
               Добавить
             </Button>
           </Box>
@@ -25,11 +32,11 @@ const EmployeeControlArea = (props: IEmployeeControlAreaProps) => {
           </Typography>
         </Stack>
       </Grid>
-      <Grid item xs={4} sx={{ alignItems: 'center', display: 'flex' }}>
-        <Button color={'error'} variant="outlined">
-          СЕРВИС ЗАПИСИ
-        </Button>
-      </Grid>
+      {/*<Grid item xs={4} sx={{ alignItems: 'center', display: 'flex' }}>*/}
+      {/*  <Button color={'error'} variant="outlined">*/}
+      {/*    СЕРВИС ЗАПИСИ*/}
+      {/*  </Button>*/}
+      {/*</Grid>*/}
     </Grid>
   );
 };

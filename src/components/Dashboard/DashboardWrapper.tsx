@@ -1,6 +1,10 @@
 import { ICar } from '../../api/queue/QueueApi.ts';
 import { Box, Divider, Stack, Typography } from '@mui/material';
 import { CustomerStatus, StatusToColor } from '../../constants/StatusData.ts';
+import { IPost, useGetPostsQuery } from '../../api/post/PostApi.ts';
+import { useSearchParams } from 'react-router-dom';
+import { shopId } from '../../constants/ShopData.ts';
+import { useMemo } from 'react';
 
 interface IDashboardWrapper {
   status: CustomerStatus;
@@ -8,6 +12,20 @@ interface IDashboardWrapper {
 }
 const DashboardWrapper = (props: IDashboardWrapper) => {
   const { status, items } = props;
+
+  const [searchParams] = useSearchParams();
+  const queryShopId = Number(searchParams.get('shop_id')) ?? shopId;
+  const { data: postData } = useGetPostsQuery({ shop_id: queryShopId });
+
+  const postDictionary: { [key: string]: IPost } = useMemo(() => {
+    if (!postData) return {};
+    return postData?.reduce((acc, item) => {
+      return {
+        ...acc,
+        [item.id]: item,
+      };
+    }, {});
+  }, [postData]);
 
   return (
     <Box
@@ -32,17 +50,19 @@ const DashboardWrapper = (props: IDashboardWrapper) => {
         {items.length > 0 ? (
           items.map((el) => {
             return (
-              <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
+              <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} key={el.number}>
                 <Stack alignItems={'start'}>
                   <Box>
-                    <Typography variant={'h5'}>Ш{el.id}</Typography>
+                    <Typography variant={'h5'}>{el.number}</Typography>
                   </Box>
                   <Box>
                     <Typography variant={'h6'}>{el.car_number}</Typography>
                   </Box>
                 </Stack>
                 <Box>
-                  <Typography variant={'h4'}>{el.post ?? 'Нет'}</Typography>
+                  <Typography variant={'h4'}>
+                    {postDictionary[String(el.post_id!) as keyof typeof postDictionary]?.number ?? 'Нет'}
+                  </Typography>
                 </Box>
               </Stack>
             );

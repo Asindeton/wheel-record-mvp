@@ -1,5 +1,5 @@
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
-import { Alert, Box, Button, Snackbar, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Checkbox, FormControlLabel, Grid, Snackbar, TextField, Typography } from '@mui/material';
 import { useCookies } from 'react-cookie';
 import CustomerHeader from '../../../components/CustmerHeader/CustomerHeader.tsx';
 import CustomerFooter from '../../../components/CustomerFooter/CustomerFooter.tsx';
@@ -10,6 +10,8 @@ import { INewCar } from '../../../api/queue/QueueApi.ts';
 import { shopId } from '../../../constants/ShopData.ts';
 import { useState } from 'react';
 import { CustomerStatus } from '../../../constants/StatusData.ts';
+import { useSearchParams } from 'react-router-dom';
+import { red } from '@mui/material/colors';
 
 interface IError {
   data: {
@@ -22,6 +24,7 @@ interface IFormInput {
   carNumber: string;
   carBrand: string;
   carModel: string;
+  isFirst: boolean;
 }
 
 const defaultValues: IFormInput = {
@@ -30,13 +33,16 @@ const defaultValues: IFormInput = {
   carNumber: '',
   carBrand: '',
   carModel: '',
+  isFirst: false,
 };
 
 const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 const cookieMaxAge = import.meta.env.VITE_COOKIE_AGE ?? '43200';
 
-export const CustomerForm = () => {
-  const { data: shopData } = useGetShopAsCustomerQuery({ id: shopId });
+export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boolean; cancelHandler?: () => void }) => {
+  const [searchParams] = useSearchParams();
+  const queryShopId = Number(searchParams.get('shop_id')) ?? shopId;
+  const { data: shopData } = useGetShopAsCustomerQuery({ id: queryShopId });
   const [isOpenErrorSnackBar, setIsOpenErrorSnackBar] = useState<boolean>(false);
   const [, setCookie] = useCookies([cookieName]);
   const [addRecord, { error }] = useAddRecordCustomerMutation();
@@ -54,16 +60,23 @@ export const CustomerForm = () => {
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     try {
       const formData: INewCar = {
-        shop_id: shopId,
+        shop_id: queryShopId,
         contact_name: data.name,
         contact_phone: data.phone,
         car_number: data.carNumber,
         car_brand: data.carBrand,
         car_model: data.carModel,
         status: CustomerStatus.new,
+        type: isEmployee ? 'manager' : 'client',
       };
       const response = await addRecord(formData).unwrap();
-      setCookie(cookieName, response.id, { path: '/', maxAge: cookieMaxAge });
+      console.log(response);
+      if (isEmployee && cancelHandler) {
+        cancelHandler();
+      }
+      if (!isEmployee) {
+        setCookie(cookieName, response.id, { path: '/', maxAge: cookieMaxAge });
+      }
     } catch (e) {
       setIsOpenErrorSnackBar(true);
     }
@@ -79,10 +92,12 @@ export const CustomerForm = () => {
         textAlign: 'start',
       }}
     >
-      <CustomerHeader serviceName={shopData?.name} />
+      {!isEmployee && <CustomerHeader serviceName={shopData?.name} />}
       <Box mt={4}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Typography variant="body2">Ваши данные</Typography>
+          <Typography variant="body2" color={'#777'}>
+            {isEmployee ? 'Клиент' : 'Ваши данные'}
+          </Typography>
           <Controller
             name="name"
             control={control}
@@ -115,7 +130,7 @@ export const CustomerForm = () => {
               <TextField
                 {...field}
                 variant="outlined"
-                label="Телефон*"
+                label="+7"
                 fullWidth
                 sx={{ marginTop: '10px' }}
                 error={!!errors[field.name]}
@@ -123,7 +138,7 @@ export const CustomerForm = () => {
               />
             )}
           />
-          <Typography variant="body2" mt={3}>
+          <Typography variant="body2" mt={3} color={'#777'}>
             Автомобиль
           </Typography>
           <Controller
@@ -133,7 +148,7 @@ export const CustomerForm = () => {
               <TextField {...field} variant="outlined" label="Госномер" fullWidth sx={{ marginTop: '10px' }} />
             )}
           />
-          <Typography variant="body2" fontStyle={'italic'}>
+          <Typography variant="body2" fontStyle={'italic'} color={'#777'}>
             Если нет номера, пропустите поле
           </Typography>
           <Controller
@@ -173,7 +188,29 @@ export const CustomerForm = () => {
             )}
           />
           <Box mt={2}>
-            <CustomerFooter />
+            <Controller
+              name="isFirst"
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      {...field}
+                      sx={{
+                        color: red[800],
+                        '&.Mui-checked': {
+                          color: red[600],
+                        },
+                      }}
+                    />
+                  }
+                  label="Поставить первым"
+                />
+              )}
+            />
+          </Box>
+          <Box mt={2}>
+            <CustomerFooter isEmployee={isEmployee} />
           </Box>
           <Box
             mt={2}
@@ -181,9 +218,24 @@ export const CustomerForm = () => {
               textAlign: 'center',
             }}
           >
-            <Button type={'submit'} variant={'contained'}>
-              Встать в очередь
-            </Button>
+            {!isEmployee ? (
+              <Button type={'submit'} variant={'contained'} fullWidth color={'error'}>
+                Встать в очередь
+              </Button>
+            ) : (
+              <Grid container columnSpacing={{ xs: 1, sm: 3, md: 4 }} mt={5}>
+                <Grid item xs={6}>
+                  <Button onClick={cancelHandler} color={'error'} fullWidth>
+                    Нет
+                  </Button>
+                </Grid>
+                <Grid item xs={6}>
+                  <Button type={'submit'} color={'error'} variant={'contained'} fullWidth>
+                    Да
+                  </Button>
+                </Grid>
+              </Grid>
+            )}
           </Box>
         </form>
       </Box>

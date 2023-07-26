@@ -1,8 +1,10 @@
 import { Box, Button, Typography } from '@mui/material';
 import CustomerFooter from '../CustomerFooter/CustomerFooter.tsx';
 import { CustomerStatus, StatusToColor } from '../../constants/StatusData.ts';
+import { ICar } from '../../api/queue/QueueApi.ts';
 
 interface CustomerQueueStatusProps {
+  data: ICar | undefined;
   status?: CustomerStatus;
   getOutClickHandler: () => void;
 }
@@ -16,7 +18,7 @@ const CustomerStatusList = {
   },
   [CustomerStatus.processed]: {
     color: StatusToColor[CustomerStatus.processed],
-    body: 'Вас пригласили на пост №1',
+    body: 'Вас пригласили на пост №{postNumber}',
     footer: 'Сейчас Ваша очередь.',
     actionText: 'Уйти из очереди',
   },
@@ -34,10 +36,10 @@ const CustomerStatusList = {
   },
 };
 const CustomerQueueStatus = (props: CustomerQueueStatusProps) => {
-  const { status, getOutClickHandler } = props;
+  const { data, status, getOutClickHandler } = props;
   const currentStatus = CustomerStatusList[status!];
 
-  if (!currentStatus) {
+  if (!currentStatus || !data) {
     return null;
   }
 
@@ -53,10 +55,10 @@ const CustomerQueueStatus = (props: CustomerQueueStatusProps) => {
         }}
       >
         <Typography variant="h6" sx={{ textAlign: 'center' }}>
-          Ваш номер <b>Номер</b>
+          Ваш номер <b>{data.number}</b>
         </Typography>
         <Typography variant="h5" sx={{ textAlign: 'center' }} mt={2}>
-          {currentStatus.body}
+          {currentStatus.body.replace('{postNumber}', String(data.post_id))}
         </Typography>
       </Box>
       <Box mt={2}>{currentStatus.footer}</Box>

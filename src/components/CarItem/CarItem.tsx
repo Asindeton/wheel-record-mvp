@@ -17,7 +17,7 @@ enum TIME_UNITS {
 interface ICarItemProps {
   item: ICar;
   deleteHandler?: (item: ICar) => void;
-  notifyHandler?: (id: number) => void;
+  notifyHandler?: (item: ICar) => void;
   provided?: DraggableProvided;
   snapshot?: DraggableStateSnapshot;
 }
@@ -38,7 +38,7 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
       <Stack>
         <Stack direction={'row'} justifyContent={'space-between'} alignItems={'start'}>
           <Box>
-            <Typography>Номер {item.id}</Typography>
+            <Typography>Номер {item.number}</Typography>
             <Typography component={'p'} variant={'caption'}>
               {item.contact_name}
             </Typography>
@@ -49,6 +49,7 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
           {deleteHandler && (
             <Button
               color={'error'}
+              sx={{ backgroundColor: 'white' }}
               variant="outlined"
               onClick={() => {
                 deleteHandler(item);
@@ -76,7 +77,14 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
         </Box>
         {notifyHandler && (
           <Box mt={2}>
-            <Button color={'error'} variant="outlined">
+            <Button
+              color={'error'}
+              variant="outlined"
+              sx={{ backgroundColor: 'white' }}
+              onClick={() => {
+                notifyHandler(item);
+              }}
+            >
               МАШИНА ГОТОВА
             </Button>
           </Box>

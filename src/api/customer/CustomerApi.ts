@@ -1,7 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { fetchBaseQuery } from '@reduxjs/toolkit/dist/query/react';
 import { IGetShopResponse, IGetShopRequestParams } from '../shop/ShopApi.ts';
-import { ICar, IGetCarRequestParams, INewCar } from '../queue/QueueApi.ts';
+import { ICar, IGetCarRequestParams, INewCar, queueApi } from '../queue/QueueApi.ts';
 
 const token = import.meta.env.VITE_AUTH_TOKEN;
 const type = import.meta.env.VITE_AUTH_TYPE;
@@ -32,6 +32,10 @@ export const customerApi = createApi({
         method: 'POST',
         body: { ...params },
       }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        await queryFulfilled;
+        dispatch(queueApi.util.invalidateTags(['Queue']));
+      },
     }),
     getRecordCustomer: builder.query<ICar, IGetCarRequestParams>({
       query: (params) => ({
