@@ -10,7 +10,7 @@ const CustomerHeader = ({ serviceName, isEmployee }: { serviceName?: string; isE
           Живая очередь
         </Typography>
       )}
-      <ServiceData name={serviceName} isEmployee={isEmployee} />
+      <ServiceData name={serviceName} />
     </>
   );
 };
