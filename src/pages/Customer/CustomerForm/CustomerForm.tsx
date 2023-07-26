@@ -30,7 +30,7 @@ interface IFormInput {
 const defaultValues: IFormInput = {
   name: '',
   phone: '',
-  carNumber: '',
+  carNumber: '+7',
   carBrand: '',
   carModel: '',
   isFirst: false,
@@ -187,28 +187,31 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
               />
             )}
           />
-          <Box mt={2}>
-            <Controller
-              name="isFirst"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      {...field}
-                      sx={{
-                        color: red[800],
-                        '&.Mui-checked': {
-                          color: red[600],
-                        },
-                      }}
-                    />
-                  }
-                  label="Поставить первым"
-                />
-              )}
-            />
-          </Box>
+          {isEmployee && (
+            <Box mt={2}>
+              <Controller
+                name="isFirst"
+                control={control}
+                render={({ field }) => (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        {...field}
+                        sx={{
+                          color: red[800],
+                          '&.Mui-checked': {
+                            color: red[600],
+                          },
+                        }}
+                      />
+                    }
+                    label="Поставить первым"
+                  />
+                )}
+              />
+            </Box>
+          )}
+
           <Box mt={2}>
             <CustomerFooter isEmployee={isEmployee} />
           </Box>
