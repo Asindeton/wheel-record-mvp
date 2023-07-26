@@ -29,8 +29,9 @@ export interface IQueueItems {
 
 interface IModalContext {
   data: ICar | null;
-  type: 'delete' | 'notify' | 'create' | null;
+  type: 'delete' | 'notify' | 'create' | 'callNextCar' | null;
   message?: string;
+  subTitle?: string;
 }
 
 const dropWight = {
@@ -94,6 +95,12 @@ export const MainPage = () => {
         sort: sort ?? item.sort,
       };
       await editRecord(requestData);
+      if (isModalOpen) {
+        setModalOpen(false);
+        setTimeout(() => {
+          setModalContext(null);
+        }, 300);
+      }
     } catch (e) {
       console.log(e);
     }
@@ -117,7 +124,8 @@ export const MainPage = () => {
     setModalContext({
       type: 'delete',
       data: item,
-      message: 'Удалить из очереди?',
+      message: 'Удалить из очереди',
+      subTitle: 'Удалить из очереди?',
     });
     setModalOpen(true);
   };
@@ -134,7 +142,35 @@ export const MainPage = () => {
   };
 
   const notifyHandler = async (item: ICar) => {
-    updateRecord(item, CustomerStatus.processed);
+    setModalContext({
+      type: 'notify',
+      data: item,
+      message: 'Машина готова',
+      subTitle: 'Подтвердить готовность машины?',
+    });
+    setModalOpen(true);
+  };
+
+  const callNextCar = (item: ICar) => {
+    setModalContext({
+      type: 'callNextCar',
+      data: item,
+      message: 'Позвать следующего',
+      subTitle: 'Позвать следующего? Текущая запись будет завершена:',
+    });
+    setModalOpen(true);
+  };
+
+  const callNextHandler = async () => {
+    try {
+      if (modalContext?.data && list.newCars.length > 0) {
+        const postId = modalContext.data.post_id;
+        updateRecord(modalContext?.data, CustomerStatus.finish);
+        updateRecord({ ...list.newCars[0], post_id: postId }, CustomerStatus.processed);
+      }
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const onDragEnd = (result: DropResult) => {
@@ -170,6 +206,15 @@ export const MainPage = () => {
         const post_id = Number(destination?.droppableId.split('_')[1]);
 
         setList((prevState) => {
+          if (destinationId === 'processedCars' && !isNaN(post_id)) {
+            const carListOnPost = prevState[destinationId as keyof typeof prevState].filter(
+              (item) => item.post_id === post_id,
+            );
+            if (carListOnPost.length > 0) {
+              return prevState;
+            }
+          }
+
           const newData = move(
             prevState[sourceId as keyof typeof prevState],
             prevState[destinationId as keyof typeof prevState],
@@ -218,7 +263,7 @@ export const MainPage = () => {
     if (data) {
       const { processedCars, finishCars, newCars } = data.reduce(
         (acc, item) => {
-          if (item.status === CustomerStatus.processed) {
+          if (item.status === CustomerStatus.processed || item.status === CustomerStatus.ready) {
             acc.processedCars.push(item);
           } else if (item.status === CustomerStatus.finish) {
             acc.finishCars.push(item);
@@ -295,7 +340,14 @@ export const MainPage = () => {
                       <Stack>
                         <Stack key={item.id} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                           <Typography variant={'h6'}>Пост {item.number}</Typography>
-                          <Button color={'error'} variant={'contained'}>
+                          <Button
+                            color={'error'}
+                            variant={'contained'}
+                            disabled={filteredCars.length === 0 || list.newCars.length === 0}
+                            onClick={() => {
+                              callNextCar(filteredCars[0]);
+                            }}
+                          >
                             ПОЗВАТЬ СЛЕДУЮЩЕГО
                           </Button>
                         </Stack>
@@ -374,8 +426,12 @@ export const MainPage = () => {
           setIsOpen={setModalOpen}
           title={modalContext?.message}
           text={() => {
-            if (modalContext?.type === 'delete') {
-              return <ModalDeleteItemBody item={modalContext?.data ?? null} subTitle={''} />;
+            if (
+              modalContext?.type === 'delete' ||
+              modalContext?.type === 'notify' ||
+              modalContext?.type === 'callNextCar'
+            ) {
+              return <ModalDeleteItemBody item={modalContext?.data ?? null} subTitle={modalContext?.subTitle ?? ''} />;
             }
             if (modalContext?.type === 'create') {
               return (
@@ -390,7 +446,11 @@ export const MainPage = () => {
             return '';
           }}
           actions={() => {
-            if (modalContext?.type === 'delete') {
+            if (
+              modalContext?.type === 'delete' ||
+              modalContext?.type === 'notify' ||
+              modalContext?.type === 'callNextCar'
+            ) {
               return (
                 <ModalItemAction
                   cancelHandler={() => {
@@ -398,7 +458,15 @@ export const MainPage = () => {
                   }}
                   acceptHandler={() => {
                     if (modalContext?.data) {
-                      deleteHandler(modalContext?.data?.id);
+                      if (modalContext?.type === 'notify') {
+                        updateRecord(modalContext.data, CustomerStatus.ready);
+                      }
+                      if (modalContext?.type === 'delete') {
+                        deleteHandler(modalContext.data?.id);
+                      }
+                      if (modalContext.type === 'callNextCar') {
+                        callNextHandler();
+                      }
                     }
                   }}
                 />

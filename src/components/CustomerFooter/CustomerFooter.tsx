@@ -1,14 +1,15 @@
 import { Typography } from '@mui/material';
-import { useGetShopAsCustomerQuery } from '../../api/customer/CustomerApi.ts';
 import { shopId } from '../../constants/ShopData.ts';
+import { useGetCountQuery } from '../../api/queue/QueueApi.ts';
+import { CustomerStatus } from '../../constants/StatusData.ts';
 
 const CustomerFooter = ({ isEmployee }: { isEmployee?: boolean }) => {
-  const { data } = useGetShopAsCustomerQuery({ id: shopId });
+  const { data: countData } = useGetCountQuery({ shop_id: shopId, status: [CustomerStatus.new, CustomerStatus.ready] });
   const text = isEmployee ? 'Перед клиентом' : 'Перед вами';
   return (
     <>
       <Typography>
-        {text}: {data?.posts_count ?? 0}
+        {text}: {countData ?? 0}
       </Typography>
       <Typography>Примерное время ожидания: 30 минут</Typography>
     </>

@@ -5,15 +5,14 @@ interface IModalDeleteItemBody {
   item: ICar | null;
   subTitle: string;
 }
-const ModalDeleteItemBody = ({ item }: IModalDeleteItemBody) => {
-  console.log(item);
+const ModalDeleteItemBody = ({ item, subTitle }: IModalDeleteItemBody) => {
   if (!item) return null;
   return (
     <Box>
-      <Typography>Удалить из очереди?</Typography>
+      <Typography>{subTitle}</Typography>
       <Box mt={2}>
         <Typography>Номер очереди</Typography>
-        <Typography>{item.id}</Typography>
+        <Typography>{item.number}</Typography>
       </Box>
       <Box mt={2}>
         <Typography>Клиент</Typography>

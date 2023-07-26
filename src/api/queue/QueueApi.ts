@@ -22,6 +22,7 @@ export interface INewCar {
   car_number: string;
   status: CustomerStatus;
   type: CreateFrom;
+  make_first: 0 | 1;
 }
 interface IGetQueueRequestParams {
   shop_id: number;
@@ -35,6 +36,11 @@ export interface IUpdateCarRequestParams {
   status: CustomerStatus;
   post_id: number | null;
   sort: number;
+}
+
+export interface IGetCountRequestParams {
+  shop_id: number;
+  status: CustomerStatus[];
 }
 
 export const queueApi = createApi({
@@ -70,7 +76,14 @@ export const queueApi = createApi({
       }),
       invalidatesTags: ['Queue'],
     }),
+    getCount: builder.query<number, IGetCountRequestParams>({
+      query: (params) => ({
+        url: '/records/count',
+        method: 'POST',
+        body: { ...params },
+      }),
+    }),
   }),
 });
 
-export const { useGetQueueQuery, useDeleteRecordMutation, useEditQueueMutation } = queueApi;
+export const { useGetQueueQuery, useDeleteRecordMutation, useEditQueueMutation, useGetCountQuery } = queueApi;

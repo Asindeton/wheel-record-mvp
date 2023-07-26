@@ -7,15 +7,17 @@ import {
   useGetRecordCustomerQuery,
   useGetShopAsCustomerQuery,
 } from '../../../api/customer/CustomerApi.ts';
-import { shopId } from '../../../constants/ShopData.ts';
 import FullScreenLoading from '../../../components/FullScreenLoading/FullScreenLoading.tsx';
 import { useEffect } from 'react';
+import { shopId } from '../../../constants/ShopData.ts';
+
 const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 
 export const CustomerQueue = () => {
   const [cookie, , removeCookie] = useCookies([cookieName]);
   const { data, isLoading } = useGetRecordCustomerQuery({ id: cookie[cookieName] }, { pollingInterval: 3000 });
-  const { data: shopData, isLoading: isLoadingShopData } = useGetShopAsCustomerQuery({ id: shopId });
+  const shop_id = data?.shop_id ?? shopId;
+  const { data: shopData, isLoading: isLoadingShopData } = useGetShopAsCustomerQuery({ id: shop_id });
   const [deleteRecord, { isLoading: isLoadingDelete }] = useDeleteRecordCustomerMutation();
 
   const getOutClickHandler = async () => {

@@ -11,4 +11,5 @@ export const baseQuery = fetchBaseQuery({
     }
     return headers;
   },
+  timeout: 5000,
 });

@@ -1,9 +1,10 @@
 import { DraggableProvided, DraggableStateSnapshot } from 'react-beautiful-dnd';
 import { ICar } from '../../api/queue/QueueApi.ts';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { StatusToColor } from '../../constants/StatusData.ts';
+import { CustomerStatus, StatusToColor } from '../../constants/StatusData.ts';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { useIntl } from 'react-intl';
+import DoneIcon from '@mui/icons-material/Done';
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
 
@@ -21,13 +22,19 @@ interface ICarItemProps {
   provided?: DraggableProvided;
   snapshot?: DraggableStateSnapshot;
 }
+
 const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps) => {
   const { formatRelativeTime, formatDate, formatTime } = useIntl();
   const timeDiff = new Date(item.created_at).getTime() - new Date().getTime();
   const [time, timeUnit] = getRelativeTimeOptions(timeDiff);
   return (
     <Box
-      sx={{ borderRadius: '7px', padding: '15px', backgroundColor: StatusToColor[item.status] }}
+      sx={{
+        borderRadius: '7px',
+        padding: '15px',
+        backgroundColor:
+          item.status === CustomerStatus.ready ? StatusToColor[CustomerStatus.processed] : StatusToColor[item.status],
+      }}
       ref={provided?.innerRef}
       {...provided?.draggableProps}
       {...provided?.dragHandleProps}
@@ -59,12 +66,15 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
             </Button>
           )}
         </Stack>
-        <Box mt={1}>
-          <Typography>{item.car_number}</Typography>
-          <Typography component={'p'} variant={'caption'}>
-            {item.car_model}
-          </Typography>
-        </Box>
+        <Stack mt={1} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+          <Box>
+            <Typography>{item.car_number}</Typography>
+            <Typography component={'p'} variant={'caption'}>
+              {item.car_model}
+            </Typography>
+          </Box>
+          {item.make_first === 1 ? <Typography>П</Typography> : null}
+        </Stack>
         <Box mt={1}>
           <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
             <AccessTimeIcon />
@@ -76,7 +86,7 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
           </Stack>
         </Box>
         {notifyHandler && (
-          <Box mt={2}>
+          <Stack mt={2} direction={'row'} alignItems={'center'} justifyContent={'start'}>
             <Button
               color={'error'}
               variant="outlined"
@@ -87,7 +97,12 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
             >
               МАШИНА ГОТОВА
             </Button>
-          </Box>
+            {item.status === CustomerStatus.ready && (
+              <Box ml={2}>
+                <DoneIcon color={'error'} />
+              </Box>
+            )}
+          </Stack>
         )}
       </Stack>
     </Box>
@@ -98,7 +113,7 @@ const getRelativeTimeOptions = (timeDiff = 0) => {
   const moduleTimeDiff = Math.abs(timeDiff);
   if (moduleTimeDiff < TIME_UNITS.MINUTE) {
     return [Math.floor(timeDiff / TIME_UNITS.SECOND), 'second'];
-  } else if (moduleTimeDiff < TIME_UNITS.HOUR) {
+  } else if (moduleTimeDiff < TIME_UNITS.DAY) {
     return [Math.floor(timeDiff / TIME_UNITS.MINUTE), 'minute'];
   } else if (moduleTimeDiff < TIME_UNITS.DAY) {
     return [Math.floor(timeDiff / TIME_UNITS.HOUR), 'hour'];

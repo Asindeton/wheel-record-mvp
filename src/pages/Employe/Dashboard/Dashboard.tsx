@@ -38,13 +38,13 @@ export const Dashboard = () => {
       <Grid container spacing={8}>
         <Grid xs={6} item>
           <Typography variant={'h4'}>Приглашены</Typography>
-          <Box mt={2}>
+          <Box mt={2} sx={{ height: '100%', overflowY: 'auto' }}>
             <DashboardWrapper status={CustomerStatus.processed} items={processedCars} />
           </Box>
         </Grid>
         <Grid xs={6} item>
           <Typography variant={'h4'}>Машина готова</Typography>
-          <Box mt={2}>
+          <Box mt={2} sx={{ height: '100%', overflowY: 'auto' }}>
             <DashboardWrapper status={CustomerStatus.ready} items={readyCars} />
           </Box>
         </Grid>

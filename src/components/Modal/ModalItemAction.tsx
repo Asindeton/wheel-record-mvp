@@ -8,7 +8,7 @@ const ModalItemAction = ({ acceptHandler, cancelHandler }: IModalItemAction) => 
   return (
     <Grid container columnSpacing={{ xs: 1, sm: 3, md: 4 }}>
       <Grid item xs={6}>
-        <Button onClick={cancelHandler} color={'error'} fullWidth>
+        <Button onClick={cancelHandler} color={'error'} fullWidth variant="outlined" sx={{ backgroundColor: 'white' }}>
           Нет
         </Button>
       </Grid>

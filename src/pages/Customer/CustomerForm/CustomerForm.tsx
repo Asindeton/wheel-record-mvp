@@ -29,8 +29,8 @@ interface IFormInput {
 
 const defaultValues: IFormInput = {
   name: '',
-  phone: '',
-  carNumber: '+7',
+  phone: '+7',
+  carNumber: '',
   carBrand: '',
   carModel: '',
   isFirst: false,
@@ -55,6 +55,7 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
     defaultValues: {
       ...defaultValues,
     },
+    mode: 'onChange',
   });
 
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
@@ -68,6 +69,7 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
         car_model: data.carModel,
         status: CustomerStatus.new,
         type: isEmployee ? 'manager' : 'client',
+        make_first: data.isFirst ? 1 : 0,
       };
       const response = await addRecord(formData).unwrap();
       console.log(response);
@@ -126,11 +128,20 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
                 message: 'Номер телефона должен быть в формате +7XXXXXXXXXX',
               },
             }}
+            // Ввод номера телефона.
+            // При постановке курсора в поле +7 не убирать, не давать ввести после +7 число 7 и не давать удалять +7.
             render={({ field }) => (
               <TextField
                 {...field}
                 variant="outlined"
+                type={'tel'}
                 label="+7"
+                onChange={(e) => {
+                  if (!e.target.value.startsWith('+7')) {
+                    return false;
+                  }
+                  field.onChange(e);
+                }}
                 fullWidth
                 sx={{ marginTop: '10px' }}
                 error={!!errors[field.name]}
@@ -228,7 +239,13 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
             ) : (
               <Grid container columnSpacing={{ xs: 1, sm: 3, md: 4 }} mt={5}>
                 <Grid item xs={6}>
-                  <Button onClick={cancelHandler} color={'error'} fullWidth>
+                  <Button
+                    onClick={cancelHandler}
+                    color={'error'}
+                    fullWidth
+                    variant="outlined"
+                    sx={{ backgroundColor: 'white' }}
+                  >
                     Нет
                   </Button>
                 </Grid>

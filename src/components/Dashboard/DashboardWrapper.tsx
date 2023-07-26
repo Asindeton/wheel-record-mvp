@@ -10,6 +10,10 @@ interface IDashboardWrapper {
   status: CustomerStatus;
   items: ICar[];
 }
+const sortListHelper = (list: ICar[]): ICar[] => {
+  return list.sort((a, b) => a.sort - b.sort);
+};
+
 const DashboardWrapper = (props: IDashboardWrapper) => {
   const { status, items } = props;
 
@@ -47,29 +51,25 @@ const DashboardWrapper = (props: IDashboardWrapper) => {
         </Typography>
       </Stack>
       <Stack divider={<Divider orientation="horizontal" flexItem />} spacing={2} mt={1}>
-        {items.length > 0 ? (
-          items.map((el) => {
-            return (
-              <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} key={el.number}>
-                <Stack alignItems={'start'}>
-                  <Box>
-                    <Typography variant={'h5'}>{el.number}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant={'h6'}>{el.car_number}</Typography>
-                  </Box>
-                </Stack>
+        {sortListHelper(items).map((el) => {
+          return (
+            <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} key={el.number}>
+              <Stack alignItems={'start'}>
                 <Box>
-                  <Typography variant={'h4'}>
-                    {postDictionary[String(el.post_id!) as keyof typeof postDictionary]?.number ?? 'Нет'}
-                  </Typography>
+                  <Typography variant={'h5'}>{el.number}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant={'h6'}>{el.car_number}</Typography>
                 </Box>
               </Stack>
-            );
-          })
-        ) : (
-          <Typography variant={'h3'}>Нет машин</Typography>
-        )}
+              <Box>
+                <Typography variant={'h4'}>
+                  {postDictionary[String(el.post_id!) as keyof typeof postDictionary]?.number ?? 'Нет'}
+                </Typography>
+              </Box>
+            </Stack>
+          );
+        })}
       </Stack>
     </Box>
   );
