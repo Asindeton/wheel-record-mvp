@@ -135,7 +135,7 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
                 {...field}
                 variant="outlined"
                 type={'tel'}
-                label="+7"
+                label="Телефон*"
                 onChange={(e) => {
                   if (!e.target.value.startsWith('+7')) {
                     return false;

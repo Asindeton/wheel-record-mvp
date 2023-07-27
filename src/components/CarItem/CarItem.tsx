@@ -70,7 +70,7 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
           <Box>
             <Typography>{item.car_number}</Typography>
             <Typography component={'p'} variant={'caption'}>
-              {item.car_model}
+              {item.car_brand} {item.car_model}
             </Typography>
           </Box>
           {item.make_first === 1 ? <Typography>П</Typography> : null}
@@ -113,7 +113,7 @@ const getRelativeTimeOptions = (timeDiff = 0) => {
   const moduleTimeDiff = Math.abs(timeDiff);
   if (moduleTimeDiff < TIME_UNITS.MINUTE) {
     return [Math.floor(timeDiff / TIME_UNITS.SECOND), 'second'];
-  } else if (moduleTimeDiff < TIME_UNITS.DAY) {
+  } else if (moduleTimeDiff < TIME_UNITS.HOUR) {
     return [Math.floor(timeDiff / TIME_UNITS.MINUTE), 'minute'];
   } else if (moduleTimeDiff < TIME_UNITS.DAY) {
     return [Math.floor(timeDiff / TIME_UNITS.HOUR), 'hour'];

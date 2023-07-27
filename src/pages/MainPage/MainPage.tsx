@@ -41,7 +41,12 @@ const dropWight = {
 };
 
 const sortListHelper = (list: ICar[]): ICar[] => {
-  return list.sort((a, b) => a.sort - b.sort);
+  return list.sort((a, b) => {
+    console.log(a);
+    if (a.make_first) return -1;
+    if (b.make_first) return 1;
+    return a.sort - b.sort;
+  });
 };
 const getDroppableId = (id: string) => {
   return id.includes('_') ? id.split('_')[0] : id;
@@ -343,7 +348,7 @@ export const MainPage = () => {
                           <Button
                             color={'error'}
                             variant={'contained'}
-                            disabled={filteredCars.length === 0 || list.newCars.length === 0}
+                            disabled={list.newCars.length === 0}
                             onClick={() => {
                               callNextCar(filteredCars[0]);
                             }}
