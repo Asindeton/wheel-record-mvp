@@ -31,20 +31,20 @@ export const Dashboard = () => {
       },
       { ...initialState },
     );
-  }, [data]);
+  }, [data, initialState]);
 
   return (
     <Box sx={{ width: '100%' }}>
       <Grid container spacing={8}>
         <Grid xs={6} item>
           <Typography variant={'h4'}>Приглашены</Typography>
-          <Box mt={2} sx={{ height: '100%', overflowY: 'auto' }}>
+          <Box mt={2} sx={{ height: 'calc(100dvh - 2.125rem - 16px - 64px)', overflowY: 'auto' }}>
             <DashboardWrapper status={CustomerStatus.processed} items={processedCars} />
           </Box>
         </Grid>
         <Grid xs={6} item>
           <Typography variant={'h4'}>Машина готова</Typography>
-          <Box mt={2} sx={{ height: '100%', overflowY: 'auto' }}>
+          <Box mt={2} sx={{ height: 'calc(100dvh - 2.125rem - 16px - 64px)', overflowY: 'auto' }}>
             <DashboardWrapper status={CustomerStatus.ready} items={readyCars} />
           </Box>
         </Grid>

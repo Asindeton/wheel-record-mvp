@@ -26,7 +26,7 @@ const Modal = (props: IModal) => {
 
   return (
     <Dialog open={props.isOpen} onClose={handleClose}>
-      <DialogContent sx={{ minWidth: '600px' }}>
+      <DialogContent sx={{ minWidth: '600px', padding: '30px 100px 50px' }}>
         <DialogTitle component={'h4'} textAlign={'center'}>
           {props.title}
         </DialogTitle>

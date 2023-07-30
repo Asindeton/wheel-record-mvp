@@ -10,10 +10,12 @@ import {
 import FullScreenLoading from '../../../components/FullScreenLoading/FullScreenLoading.tsx';
 import { useEffect } from 'react';
 import { shopId } from '../../../constants/ShopData.ts';
+import { useSearchParams } from 'react-router-dom';
 
 const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 
 export const CustomerQueue = () => {
+  const [, setSearchParams] = useSearchParams();
   const [cookie, , removeCookie] = useCookies([cookieName]);
   const { data, isLoading } = useGetRecordCustomerQuery({ id: cookie[cookieName] }, { pollingInterval: 3000 });
   const shop_id = data?.shop_id ?? shopId;
@@ -33,6 +35,9 @@ export const CustomerQueue = () => {
     if (data !== undefined) {
       if (Object.keys(data).length === 0) {
         removeCookie(cookieName, { path: '/' });
+      }
+      if (data.shop_id) {
+        setSearchParams({ shop_id: data.shop_id.toString() });
       }
     }
   }, [data]);

@@ -6,7 +6,7 @@ interface IModalDeleteItemBody {
   subTitle: string;
 }
 const ModalDeleteItemBody = ({ item, subTitle }: IModalDeleteItemBody) => {
-  if (!item) return null;
+  if (!item || !item.number) return null;
   return (
     <Box>
       <Typography>{subTitle}</Typography>

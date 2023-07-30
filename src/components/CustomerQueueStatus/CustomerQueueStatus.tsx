@@ -57,7 +57,7 @@ const CustomerQueueStatus = (props: CustomerQueueStatusProps) => {
         <Typography variant="h6" sx={{ textAlign: 'center' }}>
           Ваш номер <b>{data.number}</b>
         </Typography>
-        <Typography variant="h5" sx={{ textAlign: 'center' }} mt={2}>
+        <Typography variant="h5" sx={{ textAlign: 'center', fontWeight: 800 }} mt={2}>
           {currentStatus.body.replace('{postNumber}', String(data.post_id))}
         </Typography>
       </Box>

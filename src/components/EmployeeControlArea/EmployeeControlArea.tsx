@@ -26,7 +26,7 @@ const EmployeeControlArea = (props: IEmployeeControlAreaProps) => {
       </Grid>
       <Grid item xs={4}>
         <Stack>
-          <Typography variant={'body2'}>Живая очередь</Typography>
+          <Typography variant={'body2'}>Шинный центр</Typography>
           <Typography variant={'h6'} mt={2}>
             {props.shopData?.name}
           </Typography>

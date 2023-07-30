@@ -32,6 +32,8 @@ interface IModalContext {
   type: 'delete' | 'notify' | 'create' | 'callNextCar' | null;
   message?: string;
   subTitle?: string;
+  postId?: number;
+  isHaveProcessedCar?: boolean;
 }
 
 const dropWight = {
@@ -42,7 +44,7 @@ const dropWight = {
 
 const sortListHelper = (list: ICar[]): ICar[] => {
   return list.sort((a, b) => {
-    console.log(a);
+    if (a.make_first && b.make_first) return a.sort - b.sort;
     if (a.make_first) return -1;
     if (b.make_first) return 1;
     return a.sort - b.sort;
@@ -91,6 +93,8 @@ export const MainPage = () => {
   const [list, setList] = useState<IQueueItems>({
     ...initialState,
   });
+  const [forceRerender, setForceRerender] = useState<number>(0);
+  const [firstNewCar, setFirstNewCar] = useState<ICar | null>(null);
 
   const updateRecord = async (item: ICar, newStatus?: CustomerStatus, sort?: number) => {
     try {
@@ -111,6 +115,7 @@ export const MainPage = () => {
     }
   };
   const cancelHandler = () => {
+    setForceRerender((prev) => prev + 1);
     setModalOpen(false);
     setTimeout(() => {
       setModalContext(null);
@@ -156,22 +161,29 @@ export const MainPage = () => {
     setModalOpen(true);
   };
 
-  const callNextCar = (item: ICar) => {
+  const callNextCar = (postId: number, isHaveProcessedCar: boolean, newCar: ICar) => {
     setModalContext({
       type: 'callNextCar',
-      data: item,
+      data: list.newCars[0],
       message: 'Позвать следующего',
-      subTitle: 'Позвать следующего? Текущая запись будет завершена:',
+      subTitle: isHaveProcessedCar
+        ? 'Позвать следующую машину? Текущая запись будет завершена. Из ожидающих будет приглашена машина:'
+        : 'Позвать следующую машину? Из ожидающих будет приглашена машина:',
+      postId,
+      isHaveProcessedCar,
     });
+    setFirstNewCar(newCar);
     setModalOpen(true);
   };
 
   const callNextHandler = async () => {
     try {
-      if (modalContext?.data && list.newCars.length > 0) {
-        const postId = modalContext.data.post_id;
-        updateRecord(modalContext?.data, CustomerStatus.finish);
-        updateRecord({ ...list.newCars[0], post_id: postId }, CustomerStatus.processed);
+      if (modalContext?.data && firstNewCar && modalContext?.postId) {
+        const filteredCars = list.processedCars.filter((el) => el.post_id === modalContext?.postId);
+        if (modalContext.isHaveProcessedCar && filteredCars.length > 0) {
+          updateRecord(filteredCars[0], CustomerStatus.finish);
+        }
+        updateRecord({ ...firstNewCar, post_id: modalContext.postId }, CustomerStatus.processed);
       }
     } catch (e) {
       console.log(e);
@@ -208,20 +220,27 @@ export const MainPage = () => {
     if (sourceId !== destinationId) {
       if (destinationWeight > sourceWeight) {
         // move up
-        const post_id = Number(destination?.droppableId.split('_')[1]);
+        const destination_post_id = Number(destination?.droppableId.split('_')[1]);
+        const source_post_id = Number(source?.droppableId.split('_')[1]);
 
         setList((prevState) => {
-          if (destinationId === 'processedCars' && !isNaN(post_id)) {
+          if (destinationId === 'processedCars' && !isNaN(destination_post_id)) {
             const carListOnPost = prevState[destinationId as keyof typeof prevState].filter(
-              (item) => item.post_id === post_id,
+              (item) => item.post_id === destination_post_id,
             );
+            callNextCar(destination_post_id, carListOnPost.length > 0, prevState['newCars'][0]);
             if (carListOnPost.length > 0) {
               return prevState;
             }
           }
 
           const newData = move(
-            prevState[sourceId as keyof typeof prevState],
+            prevState[sourceId as keyof typeof prevState].filter((item) => {
+              if (!isNaN(source_post_id)) {
+                return item.post_id === source_post_id;
+              }
+              return true;
+            }),
             prevState[destinationId as keyof typeof prevState],
             source,
             destination,
@@ -229,16 +248,22 @@ export const MainPage = () => {
 
           let transformDestination = newData[destinationId!];
 
-          if (!isNaN(post_id)) {
+          if (!isNaN(destination_post_id)) {
             transformDestination = newData[destinationId!].map((item, index) => {
               if (index === destination.index) {
                 return {
                   ...item,
-                  post_id,
+                  post_id: destination_post_id,
                 };
               }
               return item;
             });
+          }
+
+          if (!isNaN(source_post_id)) {
+            newData[sourceId!] = prevState[sourceId as keyof typeof prevState].filter(
+              (item) => item.post_id !== source_post_id,
+            );
           }
 
           return {
@@ -246,13 +271,20 @@ export const MainPage = () => {
             [sourceId!]: newData[sourceId!],
             [destinationId!]: transformDestination.map((item) => {
               const newStatus = destinationId.replace('Cars', '');
-              if (item.status !== newStatus) {
-                updateRecord(item, CustomerStatus[newStatus as keyof typeof CustomerStatus]);
-                return {
-                  ...item,
-                  status: CustomerStatus[newStatus as keyof typeof CustomerStatus],
-                };
+              const itemDraggableId = item.id + '_' + item.contact_name;
+
+              if (result.draggableId === itemDraggableId) {
+                if (item.status !== newStatus) {
+                  if (newStatus === CustomerStatus.finish) {
+                    updateRecord(item, CustomerStatus.finish);
+                  }
+                  return {
+                    ...item,
+                    status: CustomerStatus[newStatus as keyof typeof CustomerStatus],
+                  };
+                }
               }
+
               return item;
             }),
           };
@@ -285,7 +317,7 @@ export const MainPage = () => {
         newCars: sortListHelper(newCars),
       });
     }
-  }, [data]);
+  }, [data, forceRerender]);
 
   useEffect(() => {
     document.body.classList.add('main-page');
@@ -342,15 +374,15 @@ export const MainPage = () => {
                   {postData?.map((item) => {
                     const filteredCars = list.processedCars.filter((el) => el.post_id === item.id);
                     return (
-                      <Stack>
-                        <Stack key={item.id} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                      <Stack key={item.id}>
+                        <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                           <Typography variant={'h6'}>Пост {item.number}</Typography>
                           <Button
                             color={'error'}
                             variant={'contained'}
                             disabled={list.newCars.length === 0}
                             onClick={() => {
-                              callNextCar(filteredCars[0]);
+                              callNextCar(item.id, filteredCars.length > 0, list.newCars[0]);
                             }}
                           >
                             ПОЗВАТЬ СЛЕДУЮЩЕГО
@@ -365,18 +397,18 @@ export const MainPage = () => {
                               {...providedDroppable.droppableProps}
                               ref={providedDroppable.innerRef}
                             >
-                              {filteredCars.map((item, index) => {
+                              {filteredCars.map((itemCar, index) => {
                                 return (
                                   <Draggable
-                                    key={item.id}
-                                    draggableId={item.id + '_' + item.contact_name}
+                                    key={itemCar.id}
+                                    draggableId={itemCar.id + '_' + itemCar.contact_name}
                                     index={index}
                                   >
                                     {(providedDraggable, snapshotDraggable) => (
                                       <CarItem
                                         provided={providedDraggable}
                                         snapshot={snapshotDraggable}
-                                        item={item}
+                                        item={itemCar}
                                         notifyHandler={notifyHandler}
                                       />
                                     )}

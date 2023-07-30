@@ -162,8 +162,8 @@
 							"mode": "formdata",
 							"formdata": [
 								{
-									"key": "shop_id",
-									"value": "2",
+									"key": "id",
+									"value": "27",
 									"type": "text"
 								}
 							]
@@ -188,7 +188,7 @@
 							"formdata": [
 								{
 									"key": "shop_id",
-									"value": "2",
+									"value": "1",
 									"type": "text"
 								},
 								{
@@ -223,24 +223,30 @@
 							"formdata": [
 								{
 									"key": "id",
-									"value": "39",
+									"value": "97",
 									"type": "text"
 								},
 								{
 									"key": "status",
 									"value": "ready",
 									"description": "new, processed, ready, finish",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "post_id",
 									"value": "5",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "top_id",
+									"value": "95",
 									"type": "text"
 								},
 								{
-									"key": "sort",
-									"value": "300",
-									"description": "default 500",
+									"key": "bottom_id",
+									"value": "96",
 									"type": "text"
 								}
 							]
@@ -290,7 +296,12 @@
 							"formdata": [
 								{
 									"key": "shop_id",
-									"value": "2",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "status",
+									"value": "new",
 									"type": "text"
 								}
 							]

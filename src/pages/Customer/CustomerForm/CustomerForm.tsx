@@ -8,10 +8,11 @@ import { VALIDATION_REGEX } from '../../../constants/ValidationRegExp.ts';
 import { useAddRecordCustomerMutation, useGetShopAsCustomerQuery } from '../../../api/customer/CustomerApi.ts';
 import { INewCar } from '../../../api/queue/QueueApi.ts';
 import { shopId } from '../../../constants/ShopData.ts';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { CustomerStatus } from '../../../constants/StatusData.ts';
 import { useSearchParams } from 'react-router-dom';
 import { red } from '@mui/material/colors';
+import { IMaskInput } from 'react-imask';
 
 interface IError {
   data: {
@@ -29,16 +30,48 @@ interface IFormInput {
 
 const defaultValues: IFormInput = {
   name: '',
-  phone: '+7',
+  phone: '7',
   carNumber: '',
   carBrand: '',
   carModel: '',
   isFirst: false,
 };
 
+interface CustomProps {
+  onChange: (el: string) => void;
+  name: string;
+}
+
 const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 const cookieMaxAge = import.meta.env.VITE_COOKIE_AGE ?? '43200';
 
+const TextMaskCustom = React.forwardRef<HTMLElement, CustomProps>(function TextMaskCustom(props, ref) {
+  const { onChange, ...other } = props;
+  return (
+    <IMaskInput
+      {...other}
+      mask="+{7} (000) 000-00-00"
+      country="Russia"
+      unmask={true}
+      prepare={(appended, masked) => {
+        if (masked.unmaskedValue === '7' && appended === '7') {
+          return '';
+        }
+        if (!masked.value.startsWith('+7')) {
+          return '+7';
+        }
+        return appended;
+      }}
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      inputRef={ref}
+      onAccept={(value: string) => {
+        return onChange(value);
+      }}
+      overwrite
+    />
+  );
+});
 export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boolean; cancelHandler?: () => void }) => {
   const [searchParams] = useSearchParams();
   const queryShopId = Number(searchParams.get('shop_id')) ?? shopId;
@@ -55,7 +88,7 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
     defaultValues: {
       ...defaultValues,
     },
-    mode: 'onChange',
+    mode: 'onTouched',
   });
 
   const onSubmit: SubmitHandler<IFormInput> = async (data) => {
@@ -64,7 +97,7 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
         shop_id: queryShopId,
         contact_name: data.name,
         contact_phone: data.phone,
-        car_number: data.carNumber,
+        car_number: data.carNumber.toUpperCase(),
         car_brand: data.carBrand,
         car_model: data.carModel,
         status: CustomerStatus.new,
@@ -72,7 +105,6 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
         make_first: data.isFirst ? 1 : 0,
       };
       const response = await addRecord(formData).unwrap();
-      console.log(response);
       if (isEmployee && cancelHandler) {
         cancelHandler();
       }
@@ -92,6 +124,7 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
     <Box
       sx={{
         textAlign: 'start',
+        maxWidth: isEmployee ? '600px' : '380px',
       }}
     >
       {!isEmployee && <CustomerHeader serviceName={shopData?.name} />}
@@ -128,24 +161,22 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
                 message: 'Номер телефона должен быть в формате +7XXXXXXXXXX',
               },
             }}
-            // Ввод номера телефона.
-            // При постановке курсора в поле +7 не убирать, не давать ввести после +7 число 7 и не давать удалять +7.
             render={({ field }) => (
               <TextField
                 {...field}
                 variant="outlined"
                 type={'tel'}
                 label="Телефон*"
-                onChange={(e) => {
-                  if (!e.target.value.startsWith('+7')) {
-                    return false;
-                  }
-                  field.onChange(e);
-                }}
                 fullWidth
                 sx={{ marginTop: '10px' }}
                 error={!!errors[field.name]}
                 helperText={errors[field.name]?.message}
+                onChange={(e) => {
+                  field.onChange(e);
+                }}
+                InputProps={{
+                  inputComponent: TextMaskCustom as never,
+                }}
               />
             )}
           />
@@ -156,7 +187,14 @@ export const CustomerForm = ({ isEmployee, cancelHandler }: { isEmployee?: boole
             name="carNumber"
             control={control}
             render={({ field }) => (
-              <TextField {...field} variant="outlined" label="Госномер" fullWidth sx={{ marginTop: '10px' }} />
+              <TextField
+                {...field}
+                variant="outlined"
+                label="Госномер"
+                fullWidth
+                sx={{ marginTop: '10px' }}
+                inputProps={{ style: { textTransform: 'uppercase' } }}
+              />
             )}
           />
           <Typography variant="body2" fontStyle={'italic'} color={'#777'}>

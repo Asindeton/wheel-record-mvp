@@ -11,6 +11,7 @@ const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 export const BrowserRouter = () => {
   const token = useAppSelector((state) => state.auth.access_token);
   const [cookies] = useCookies([cookieName]);
+
   const router = createBrowserRouter([
     {
       path: '/',
@@ -46,8 +47,11 @@ export const BrowserRouter = () => {
       path: '/customers/:id',
       element: <CustomerQueue />,
       loader: (param) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const params = new URL(document.location).searchParams.toString();
         if (!cookies[cookieName]) {
-          return redirect(`/customers`);
+          return redirect(['/customers', params].filter((item) => item).join('?'));
         }
         if (cookies[cookieName] !== param.params.id) {
           return redirect(`/customers/${cookies[cookieName]}`);
