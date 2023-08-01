@@ -6,7 +6,7 @@ import { ICar } from '../../api/queue/QueueApi.ts';
 interface CustomerQueueStatusProps {
   data: ICar | undefined;
   status?: CustomerStatus;
-  getOutClickHandler: () => void;
+  getOutClickHandler: (isFinish: boolean) => void;
 }
 
 const CustomerStatusList = {
@@ -15,24 +15,28 @@ const CustomerStatusList = {
     body: 'Ожидайте приглашения',
     footer: <CustomerFooter />,
     actionText: 'Уйти из очереди',
+    isFinish: false,
   },
   [CustomerStatus.processed]: {
     color: StatusToColor[CustomerStatus.processed],
     body: 'Вас пригласили на пост №{postNumber}',
     footer: 'Сейчас Ваша очередь.',
     actionText: 'Уйти из очереди',
+    isFinish: false,
   },
   [CustomerStatus.ready]: {
     color: StatusToColor[CustomerStatus.ready],
     body: 'Машина готова',
     footer: 'Можете оплатить обслуживание и забрать машину.',
     actionText: '',
+    isFinish: false,
   },
   [CustomerStatus.finish]: {
     color: StatusToColor[CustomerStatus.finish],
     body: 'Запись выполнена',
     footer: 'Спасибо за посещение!',
     actionText: 'Встать в очередь',
+    isFinish: true,
   },
 };
 const CustomerQueueStatus = (props: CustomerQueueStatusProps) => {
@@ -64,7 +68,14 @@ const CustomerQueueStatus = (props: CustomerQueueStatusProps) => {
       <Box mt={2}>{currentStatus.footer}</Box>
       {currentStatus?.actionText && (
         <Box mt={3}>
-          <Button variant="contained" fullWidth onClick={getOutClickHandler} color="error">
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => {
+              getOutClickHandler(currentStatus.isFinish);
+            }}
+            color="error"
+          >
             {currentStatus.actionText}
           </Button>
         </Box>

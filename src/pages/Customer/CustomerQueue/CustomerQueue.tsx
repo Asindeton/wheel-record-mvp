@@ -22,9 +22,11 @@ export const CustomerQueue = () => {
   const { data: shopData, isLoading: isLoadingShopData } = useGetShopAsCustomerQuery({ id: shop_id });
   const [deleteRecord, { isLoading: isLoadingDelete }] = useDeleteRecordCustomerMutation();
 
-  const getOutClickHandler = async () => {
+  const getOutClickHandler = async (isFinish: boolean) => {
     try {
-      await deleteRecord({ id: cookie[cookieName] });
+      if (!isFinish) {
+        await deleteRecord({ id: cookie[cookieName] });
+      }
       removeCookie(cookieName, { path: '/' });
     } catch (e) {
       console.log(e);
