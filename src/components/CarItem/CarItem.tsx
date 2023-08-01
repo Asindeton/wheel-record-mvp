@@ -46,9 +46,6 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
 
   const [time, timeUnit] = getRelativeTimeOptions(timeDiff);
 
-  if (timeUnit === 'hour') {
-    console.log('time', time, timeUnit);
-  }
   return (
     <Box
       sx={{

@@ -2,6 +2,12 @@ import { baseQuery } from '../shared/query.ts';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { CustomerStatus } from '../../constants/StatusData.ts';
 
+export interface ITimesInStatus {
+  d: number;
+  h: number;
+  i: number;
+  s: number;
+}
 export interface ICar extends INewCar {
   id: number;
   post_id: number | null;
@@ -10,13 +16,9 @@ export interface ICar extends INewCar {
   sort: number;
   created_at: string;
   updated_at: string;
-  time_in_status: {
-    d: number;
-    h: number;
-    i: number;
-    s: number;
-  };
+  time_in_status: ITimesInStatus;
 }
+
 export type CreateFrom = 'client' | 'manager';
 
 export interface INewCar {
@@ -90,7 +92,15 @@ export const queueApi = createApi({
         body: { ...params },
       }),
     }),
+    getTime: builder.query<ITimesInStatus, IGetCountRequestParams>({
+      query: (params) => ({
+        url: '/records/time',
+        method: 'POST',
+        body: { ...params },
+      }),
+    }),
   }),
 });
 
-export const { useGetQueueQuery, useDeleteRecordMutation, useEditQueueMutation, useGetCountQuery } = queueApi;
+export const { useGetQueueQuery, useDeleteRecordMutation, useEditQueueMutation, useGetCountQuery, useGetTimeQuery } =
+  queueApi;
