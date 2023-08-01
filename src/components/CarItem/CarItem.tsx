@@ -15,6 +15,23 @@ enum TIME_UNITS {
   DAY = 24 * 60 * 60 * 1000,
 }
 
+const getTime = ({ d, h, i, s }: { d: number; h: number; i: number; s: number }) => {
+  let time = 0;
+  if (d) {
+    time += d * TIME_UNITS.DAY;
+  }
+  if (h) {
+    time += h * TIME_UNITS.HOUR;
+  }
+  if (i) {
+    time += i * TIME_UNITS.MINUTE;
+  }
+  if (s) {
+    time += s * TIME_UNITS.SECOND;
+  }
+  return time;
+};
+
 interface ICarItemProps {
   item: ICar;
   deleteHandler?: (item: ICar) => void;
@@ -25,8 +42,13 @@ interface ICarItemProps {
 
 const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps) => {
   const { formatRelativeTime, formatDate, formatTime } = useIntl();
-  const timeDiff = new Date(item.created_at).getTime() - new Date().getTime();
+  const timeDiff = -getTime(item.time_in_status);
+
   const [time, timeUnit] = getRelativeTimeOptions(timeDiff);
+
+  if (timeUnit === 'hour') {
+    console.log('time', time, timeUnit);
+  }
   return (
     <Box
       sx={{
@@ -80,7 +102,12 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
             <AccessTimeIcon />
             <Typography>
               {timeUnit !== 'day'
-                ? formatRelativeTime(time as number, timeUnit as Unit, { numeric: 'auto' })
+                ? timeUnit === 'hour'
+                  ? `${Math.abs(Math.round((time as number) / 60))}ч ${formatRelativeTime(
+                      Math.round((time as number) % 60),
+                      'minute',
+                    )}`
+                  : formatRelativeTime(time as number, timeUnit as Unit, { numeric: 'auto' })
                 : formatDate(item.created_at) + ' ' + formatTime(item.created_at)}
             </Typography>
           </Stack>
@@ -116,7 +143,7 @@ const getRelativeTimeOptions = (timeDiff = 0) => {
   } else if (moduleTimeDiff < TIME_UNITS.HOUR) {
     return [Math.floor(timeDiff / TIME_UNITS.MINUTE), 'minute'];
   } else if (moduleTimeDiff < TIME_UNITS.DAY) {
-    return [Math.floor(timeDiff / TIME_UNITS.HOUR), 'hour'];
+    return [Math.floor(timeDiff / TIME_UNITS.MINUTE), 'hour'];
   }
   return [Math.floor(timeDiff / TIME_UNITS.DAY), 'day'];
 };

@@ -44,9 +44,9 @@ const dropWight = {
 
 const sortListHelper = (list: ICar[]): ICar[] => {
   return list.sort((a, b) => {
-    if (a.make_first && b.make_first) return a.sort - b.sort;
-    if (a.make_first) return -1;
-    if (b.make_first) return 1;
+    // if (a.make_first && b.make_first) return a.sort - b.sort;
+    // if (a.make_first) return -1;
+    // if (b.make_first) return 1;
     return a.sort - b.sort;
   });
 };
@@ -96,13 +96,21 @@ export const MainPage = () => {
   const [forceRerender, setForceRerender] = useState<number>(0);
   const [firstNewCar, setFirstNewCar] = useState<ICar | null>(null);
 
-  const updateRecord = async (item: ICar, newStatus?: CustomerStatus, sort?: number) => {
+  const updateRecord = async (item: ICar, newStatus?: CustomerStatus, top_id?: number, bottom_id?: number) => {
     try {
       const requestData: IUpdateCarRequestParams = {
         ...item,
         status: newStatus ?? item.status,
-        sort: sort ?? item.sort,
+        top_id,
+        bottom_id,
       };
+
+      Object.keys(requestData).forEach((key) =>
+        requestData[key as keyof typeof requestData] === undefined
+          ? delete requestData[key as keyof typeof requestData]
+          : {},
+      );
+
       await editRecord(requestData);
       if (isModalOpen) {
         setModalOpen(false);
@@ -164,7 +172,7 @@ export const MainPage = () => {
   const callNextCar = (postId: number, isHaveProcessedCar: boolean, newCar: ICar) => {
     setModalContext({
       type: 'callNextCar',
-      data: list.newCars[0],
+      data: newCar,
       message: 'Позвать следующего',
       subTitle: isHaveProcessedCar
         ? 'Позвать следующую машину? Текущая запись будет завершена. Из ожидающих будет приглашена машина:'
@@ -202,12 +210,28 @@ export const MainPage = () => {
 
     if (sourceWeight === destinationWeight) {
       setList((prevState) => {
+        const draggableCar = prevState[sourceId as keyof typeof prevState].find(
+          (el) => el.id === Number(result.draggableId.split('_')[0]),
+        );
+
         const newData = reorder(prevState[sourceId as keyof typeof prevState], source.index, destination.index);
+
+        let upperId, bottomID;
+        (newData as ICar[]).forEach((item, index, array) => {
+          if (item.id === draggableCar?.id) {
+            upperId = index - 1 >= 0 ? array[index - 1].id : undefined;
+            bottomID = index + 1 < array.length ? array[index + 1].id : undefined;
+          }
+        });
+
+        if (draggableCar) {
+          updateRecord(draggableCar, draggableCar.status, upperId, bottomID);
+        }
+
         return {
           ...prevState,
           [sourceId!]: newData.map((item, index) => {
             if ((item as ICar).sort === index + 1) return item;
-            updateRecord(item as ICar, (item as ICar).status, index + 1);
             return {
               ...item,
               sort: index + 1,
@@ -224,11 +248,16 @@ export const MainPage = () => {
         const source_post_id = Number(source?.droppableId.split('_')[1]);
 
         setList((prevState) => {
+          const draggableCar = prevState[sourceId as keyof typeof prevState].find(
+            (el) => el.id === Number(result.draggableId.split('_')[0]),
+          );
+
           if (destinationId === 'processedCars' && !isNaN(destination_post_id)) {
             const carListOnPost = prevState[destinationId as keyof typeof prevState].filter(
               (item) => item.post_id === destination_post_id,
             );
-            callNextCar(destination_post_id, carListOnPost.length > 0, prevState['newCars'][0]);
+            const droppableCar = prevState[sourceId as keyof typeof prevState][source.index];
+            callNextCar(destination_post_id, carListOnPost.length > 0, droppableCar);
             if (carListOnPost.length > 0) {
               return prevState;
             }
@@ -246,6 +275,19 @@ export const MainPage = () => {
             destination,
           );
 
+          let upperId, bottomID;
+
+          (newData[destinationId!] as ICar[]).forEach((item, index, array) => {
+            if (item.id === draggableCar?.id) {
+              upperId = index - 1 >= 0 ? array[index - 1].id : undefined;
+              bottomID = index + 1 < array.length ? array[index + 1].id : undefined;
+            }
+          });
+
+          const newStatus = destinationId.replace('Cars', '');
+          if (newStatus === CustomerStatus.finish && draggableCar) {
+            updateRecord(draggableCar, CustomerStatus.finish, upperId, bottomID);
+          }
           let transformDestination = newData[destinationId!];
 
           if (!isNaN(destination_post_id)) {
@@ -275,9 +317,6 @@ export const MainPage = () => {
 
               if (result.draggableId === itemDraggableId) {
                 if (item.status !== newStatus) {
-                  if (newStatus === CustomerStatus.finish) {
-                    updateRecord(item, CustomerStatus.finish);
-                  }
                   return {
                     ...item,
                     status: CustomerStatus[newStatus as keyof typeof CustomerStatus],

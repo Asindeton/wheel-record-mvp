@@ -10,6 +10,12 @@ export interface ICar extends INewCar {
   sort: number;
   created_at: string;
   updated_at: string;
+  time_in_status: {
+    d: number;
+    h: number;
+    i: number;
+    s: number;
+  };
 }
 export type CreateFrom = 'client' | 'manager';
 
@@ -35,7 +41,8 @@ export interface IUpdateCarRequestParams {
   id: number;
   status: CustomerStatus;
   post_id: number | null;
-  sort: number;
+  top_id?: number | undefined;
+  bottom_id?: number | undefined;
 }
 
 export interface IGetCountRequestParams {
