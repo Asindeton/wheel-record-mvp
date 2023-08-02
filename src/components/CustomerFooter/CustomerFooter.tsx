@@ -12,12 +12,12 @@ const CustomerFooter = ({ isEmployee }: { isEmployee?: boolean }) => {
 
   const { data: countData } = useGetCountQuery({
     shop_id: queryShopId,
-    status: [CustomerStatus.new, CustomerStatus.processed],
+    status: [CustomerStatus.new],
   });
 
   const { data: timeData } = useGetTimeQuery({
     shop_id: queryShopId,
-    status: [CustomerStatus.new, CustomerStatus.processed],
+    status: [CustomerStatus.new],
   });
 
   const calculateTime = useMemo(() => {

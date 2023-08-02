@@ -70,7 +70,7 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
           {item.make_first === 1 ? <Typography>П</Typography> : null}
         </Stack>
         <Box mt={1}>
-          <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
+          <Stack direction={'row'} justifyContent={'start'} alignItems={'center'} gap={2}>
             <AccessTimeIcon />
             <Typography>
               {calculateTime}
