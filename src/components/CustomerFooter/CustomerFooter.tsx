@@ -4,6 +4,7 @@ import { useGetCountQuery, useGetTimeQuery } from '../../api/queue/QueueApi.ts';
 import { CustomerStatus } from '../../constants/StatusData.ts';
 import { useSearchParams } from 'react-router-dom';
 import { useMemo } from 'react';
+import { getTime } from '../../utils/time.ts';
 
 const CustomerFooter = ({ isEmployee }: { isEmployee?: boolean }) => {
   const [searchParams] = useSearchParams();
@@ -21,13 +22,7 @@ const CustomerFooter = ({ isEmployee }: { isEmployee?: boolean }) => {
 
   const calculateTime = useMemo(() => {
     if (!timeData) return 0;
-    const { d, h, i, s } = timeData;
-    let result = '';
-    if (d) result += `${d} дней `;
-    if (h) result += h === 1 ? `${h} час ` : h > 4 ? `${h} часов ` : `${h} часа `;
-    if (i) result += `${i} минут `;
-    if (s) result += `${s} секунд `;
-    return result;
+    return getTime(timeData);
   }, [timeData]);
 
   const text = isEmployee ? 'Перед клиентом' : 'Перед вами';

@@ -3,34 +3,9 @@ import { ICar } from '../../api/queue/QueueApi.ts';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { CustomerStatus, StatusToColor } from '../../constants/StatusData.ts';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { useIntl } from 'react-intl';
 import DoneIcon from '@mui/icons-material/Done';
-
-type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
-
-enum TIME_UNITS {
-  SECOND = 1000,
-  MINUTE = 60 * 1000,
-  HOUR = 60 * 60 * 1000,
-  DAY = 24 * 60 * 60 * 1000,
-}
-
-const getTime = ({ d, h, i, s }: { d: number; h: number; i: number; s: number }) => {
-  let time = 0;
-  if (d) {
-    time += d * TIME_UNITS.DAY;
-  }
-  if (h) {
-    time += h * TIME_UNITS.HOUR;
-  }
-  if (i) {
-    time += i * TIME_UNITS.MINUTE;
-  }
-  if (s) {
-    time += s * TIME_UNITS.SECOND;
-  }
-  return time;
-};
+import { useMemo } from 'react';
+import { getTime } from '../../utils/time.ts';
 
 interface ICarItemProps {
   item: ICar;
@@ -41,10 +16,10 @@ interface ICarItemProps {
 }
 
 const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps) => {
-  const { formatRelativeTime, formatDate, formatTime } = useIntl();
-  const timeDiff = -getTime(item.time_in_status);
-
-  const [time, timeUnit] = getRelativeTimeOptions(timeDiff);
+  const calculateTime = useMemo(() => {
+    if (!item.time_in_status) return 0;
+    return getTime(item.time_in_status);
+  }, [item.time_in_status]);
 
   return (
     <Box
@@ -98,14 +73,15 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
           <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
             <AccessTimeIcon />
             <Typography>
-              {timeUnit !== 'day'
-                ? timeUnit === 'hour'
-                  ? `${Math.abs(Math.round((time as number) / 60))}ч ${formatRelativeTime(
-                      Math.round((time as number) % 60),
-                      'minute',
-                    )}`
-                  : formatRelativeTime(time as number, timeUnit as Unit, { numeric: 'auto' })
-                : formatDate(item.created_at) + ' ' + formatTime(item.created_at)}
+              {calculateTime}
+              {/*{timeUnit !== 'day'*/}
+              {/*  ? timeUnit === 'hour'*/}
+              {/*    ? `${Math.abs(Math.round((time as number) / 60))}ч ${formatRelativeTime(*/}
+              {/*        Math.round((time as number) % 60),*/}
+              {/*        'minute',*/}
+              {/*      )}`*/}
+              {/*    : formatRelativeTime(time as number, timeUnit as Unit, { numeric: 'auto' })*/}
+              {/*  : formatDate(item.created_at) + ' ' + formatTime(item.created_at)}*/}
             </Typography>
           </Stack>
         </Box>
@@ -131,18 +107,6 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
       </Stack>
     </Box>
   );
-};
-
-const getRelativeTimeOptions = (timeDiff = 0) => {
-  const moduleTimeDiff = Math.abs(timeDiff);
-  if (moduleTimeDiff < TIME_UNITS.MINUTE) {
-    return [Math.floor(timeDiff / TIME_UNITS.SECOND), 'second'];
-  } else if (moduleTimeDiff < TIME_UNITS.HOUR) {
-    return [Math.floor(timeDiff / TIME_UNITS.MINUTE), 'minute'];
-  } else if (moduleTimeDiff < TIME_UNITS.DAY) {
-    return [Math.floor(timeDiff / TIME_UNITS.MINUTE), 'hour'];
-  }
-  return [Math.floor(timeDiff / TIME_UNITS.DAY), 'day'];
 };
 
 export default CarItem;
