@@ -55,7 +55,7 @@ export interface IGetCountRequestParams {
 export const queueApi = createApi({
   reducerPath: 'queueApi',
   baseQuery: baseQuery,
-  tagTypes: ['Queue'],
+  tagTypes: ['Queue', 'Count', 'Time'],
   endpoints: (builder) => ({
     getQueue: builder.query<ICar[], IGetQueueRequestParams>({
       query: (params) => ({
@@ -75,7 +75,7 @@ export const queueApi = createApi({
         // method: 'GET',
         // params,
       }),
-      invalidatesTags: ['Queue'],
+      invalidatesTags: ['Queue', 'Time', 'Count'],
     }),
     deleteRecord: builder.mutation<unknown, IGetCarRequestParams>({
       query: (params) => ({
@@ -83,7 +83,7 @@ export const queueApi = createApi({
         method: 'POST',
         body: { ...params },
       }),
-      invalidatesTags: ['Queue'],
+      invalidatesTags: ['Queue', 'Time', 'Count'],
     }),
     getCount: builder.query<number, IGetCountRequestParams>({
       query: (params) => ({
@@ -91,6 +91,7 @@ export const queueApi = createApi({
         method: 'POST',
         body: { ...params },
       }),
+      providesTags: ['Count'],
     }),
     getTime: builder.query<ITimesInStatus, IGetCountRequestParams>({
       query: (params) => ({
@@ -98,6 +99,7 @@ export const queueApi = createApi({
         method: 'POST',
         body: { ...params },
       }),
+      providesTags: ['Time'],
     }),
   }),
 });
