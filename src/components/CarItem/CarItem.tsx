@@ -21,11 +21,20 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
     return getTime(item.time_in_status);
   }, [item.time_in_status]);
 
+  const subTitleColor =
+    item.status === CustomerStatus.processed || item.status === CustomerStatus.ready
+      ? '#FFFFFF'
+      : item.status === CustomerStatus.finish
+      ? '#404040'
+      : '#777777';
+
   return (
     <Box
       sx={{
         borderRadius: '7px',
         padding: '15px',
+        border: '1px solid',
+        borderColor: item.status === CustomerStatus.finish ? '#C4C4C4' : '#ADADAD',
         backgroundColor:
           item.status === CustomerStatus.ready ? StatusToColor[CustomerStatus.processed] : StatusToColor[item.status],
       }}
@@ -39,11 +48,24 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
       <Stack>
         <Stack direction={'row'} justifyContent={'space-between'} alignItems={'start'}>
           <Box>
-            <Typography>Номер {item.number}</Typography>
-            <Typography component={'p'} variant={'caption'}>
+            <Typography>
+              {'Номер '}
+              <Typography sx={{ fontWeight: 'bold' }} component={'span'}>
+                {item.number}
+              </Typography>
+            </Typography>
+
+            <Typography
+              component={'p'}
+              variant={'caption'}
+              sx={{
+                color: subTitleColor,
+                fontSize: '14px',
+              }}
+            >
               {item.contact_name}
             </Typography>
-            <Typography component={'p'} variant={'caption'}>
+            <Typography component={'p'} variant={'caption'} sx={{ color: subTitleColor, fontSize: '14px' }}>
               {item.contact_phone}
             </Typography>
           </Box>
@@ -62,8 +84,8 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
         </Stack>
         <Stack mt={1} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
           <Box>
-            <Typography>{item.car_number}</Typography>
-            <Typography component={'p'} variant={'caption'}>
+            <Typography sx={{ fontWeight: 'bold' }}>{item.car_number}</Typography>
+            <Typography component={'p'} variant={'caption'} sx={{ fontSize: '14px' }}>
               {item.car_brand} {item.car_model}
             </Typography>
           </Box>
@@ -71,17 +93,20 @@ const CarItem = ({ item, deleteHandler, notifyHandler, provided }: ICarItemProps
         </Stack>
         <Box mt={1}>
           <Stack direction={'row'} justifyContent={'start'} alignItems={'center'} gap={2}>
-            <AccessTimeIcon />
-            <Typography>
+            <AccessTimeIcon
+              sx={{
+                color:
+                  item.status === CustomerStatus.processed || item.status === CustomerStatus.ready
+                    ? '#FFFFFF'
+                    : 'inherit',
+              }}
+            />
+            <Typography
+              sx={{
+                color: subTitleColor,
+              }}
+            >
               {calculateTime}
-              {/*{timeUnit !== 'day'*/}
-              {/*  ? timeUnit === 'hour'*/}
-              {/*    ? `${Math.abs(Math.round((time as number) / 60))}ч ${formatRelativeTime(*/}
-              {/*        Math.round((time as number) % 60),*/}
-              {/*        'minute',*/}
-              {/*      )}`*/}
-              {/*    : formatRelativeTime(time as number, timeUnit as Unit, { numeric: 'auto' })*/}
-              {/*  : formatDate(item.created_at) + ' ' + formatTime(item.created_at)}*/}
             </Typography>
           </Stack>
         </Box>

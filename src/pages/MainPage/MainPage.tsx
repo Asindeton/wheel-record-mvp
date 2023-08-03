@@ -377,7 +377,9 @@ export const MainPage = () => {
           <DragDropContext onDragEnd={onDragEnd}>
             <Grid container columnSpacing={{ xs: 1, sm: 3, md: 12 }}>
               <Grid item xs={4}>
-                <Typography variant={'h5'}>Ожидают: {list.newCars.length}</Typography>
+                <Typography variant={'h5'} sx={{ fontWeight: 'bold' }}>
+                  Ожидают: {list.newCars.length}
+                </Typography>
                 <StrictModeDroppable droppableId="newCars">
                   {(providedDroppable) => (
                     <Stack
@@ -408,7 +410,9 @@ export const MainPage = () => {
               </Grid>
 
               <Grid item xs={4}>
-                <Typography variant={'h5'}>Приглашены: {list.processedCars.length}</Typography>
+                <Typography variant={'h5'} sx={{ fontWeight: 'bold' }}>
+                  Приглашены: {list.processedCars.length}
+                </Typography>
                 <Stack direction={'column'} gap={2} mt={4}>
                   {postData?.map((item) => {
                     const filteredCars = list.processedCars.filter((el) => el.post_id === item.id);
@@ -465,7 +469,9 @@ export const MainPage = () => {
               </Grid>
 
               <Grid item xs={4}>
-                <Typography variant={'h5'}>Завершены: {list.finishCars.length}</Typography>
+                <Typography variant={'h5'} sx={{ fontWeight: 'bold' }}>
+                  Завершены: {list.finishCars.length}
+                </Typography>
                 <StrictModeDroppable droppableId="finishCars">
                   {(providedDroppable) => (
                     <Stack
