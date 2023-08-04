@@ -11,6 +11,7 @@ import FullScreenLoading from '../../../components/FullScreenLoading/FullScreenL
 import { useEffect } from 'react';
 import { shopId } from '../../../constants/ShopData.ts';
 import { useSearchParams } from 'react-router-dom';
+import { useGetPostsQuery } from '../../../api/post/PostApi.ts';
 
 const cookieName = import.meta.env.VITE_COOKIE_NAME ?? 'queueId';
 
@@ -20,6 +21,7 @@ export const CustomerQueue = () => {
   const { data, isLoading } = useGetRecordCustomerQuery({ id: cookie[cookieName] }, { pollingInterval: 3000 });
   const shop_id = data?.shop_id ?? shopId;
   const { data: shopData, isLoading: isLoadingShopData } = useGetShopAsCustomerQuery({ id: shop_id });
+  const { data: postData } = useGetPostsQuery({ shop_id: shop_id });
   const [deleteRecord, { isLoading: isLoadingDelete }] = useDeleteRecordCustomerMutation();
 
   const getOutClickHandler = async (isFinish: boolean) => {
@@ -52,7 +54,12 @@ export const CustomerQueue = () => {
     >
       <CustomerHeader serviceName={shopData?.name} />
       <Box mt={2}>
-        <CustomerQueueStatus status={data?.status} getOutClickHandler={getOutClickHandler} data={data} />
+        <CustomerQueueStatus
+          status={data?.status}
+          getOutClickHandler={getOutClickHandler}
+          data={data}
+          postData={postData}
+        />
       </Box>
       <FullScreenLoading open={isLoading || isLoadingShopData || isLoadingDelete} />
     </Box>

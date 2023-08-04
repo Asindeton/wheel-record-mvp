@@ -2,11 +2,13 @@ import { Box, Button, Typography } from '@mui/material';
 import CustomerFooter from '../CustomerFooter/CustomerFooter.tsx';
 import { CustomerStatus, StatusToColor } from '../../constants/StatusData.ts';
 import { ICar } from '../../api/queue/QueueApi.ts';
+import { IPost } from '../../api/post/PostApi.ts';
 
 interface CustomerQueueStatusProps {
   data: ICar | undefined;
   status?: CustomerStatus;
   getOutClickHandler: (isFinish: boolean) => void;
+  postData?: IPost[];
 }
 
 const CustomerStatusList = {
@@ -40,7 +42,7 @@ const CustomerStatusList = {
   },
 };
 const CustomerQueueStatus = (props: CustomerQueueStatusProps) => {
-  const { data, status, getOutClickHandler } = props;
+  const { data, status, getOutClickHandler, postData } = props;
   const currentStatus = CustomerStatusList[status!];
 
   if (!currentStatus || !data) {
@@ -62,7 +64,7 @@ const CustomerQueueStatus = (props: CustomerQueueStatusProps) => {
           Ваш номер <b>{data.number}</b>
         </Typography>
         <Typography variant="h5" sx={{ textAlign: 'center', fontWeight: 800 }} mt={2}>
-          {currentStatus.body.replace('{postNumber}', String(data.post_id))}
+          {currentStatus.body.replace('{postNumber}', String(postData?.find((el) => el.id === data.post_id)?.number))}
         </Typography>
       </Box>
       <Box mt={2}>{currentStatus.footer}</Box>
