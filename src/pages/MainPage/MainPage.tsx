@@ -43,12 +43,13 @@ const dropWight = {
 };
 
 const sortListHelper = (list: ICar[]): ICar[] => {
-  return list.sort((a, b) => {
-    // if (a.make_first && b.make_first) return a.sort - b.sort;
-    // if (a.make_first) return -1;
-    // if (b.make_first) return 1;
-    return a.sort - b.sort;
-  });
+  return list;
+  // return list.sort((a, b) => {
+  //   // if (a.make_first && b.make_first) return a.sort - b.sort;
+  //   // if (a.make_first) return -1;
+  //   // if (b.make_first) return 1;
+  //   return a.sort - b.sort;
+  // });
 };
 const getDroppableId = (id: string) => {
   return id.includes('_') ? id.split('_')[0] : id;
