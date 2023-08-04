@@ -15,6 +15,15 @@ export const BrowserRouter = () => {
   const router = createBrowserRouter([
     {
       path: '/',
+      loader: () => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const params = new URL(document.location).searchParams.toString();
+        return redirect(['/customers', params].filter((item) => item).join('?'));
+      },
+    },
+    {
+      path: '/admin',
       element: <MainPage />,
       loader: () => checkAuth(token),
     },

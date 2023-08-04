@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly VITE_SHOP_ID: number;
   readonly VITE_AUTH_TOKEN: string;
   readonly VITE_AUTH_TYPE: string;
+  readonly VITE_PROXY: string;
   // more env variables...
 }
 

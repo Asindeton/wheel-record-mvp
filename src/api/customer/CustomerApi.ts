@@ -5,10 +5,11 @@ import { ICar, IGetCarRequestParams, INewCar, queueApi } from '../queue/QueueApi
 
 const token = import.meta.env.VITE_AUTH_TOKEN;
 const type = import.meta.env.VITE_AUTH_TYPE;
+const isProxy = import.meta.env.VITE_PROXY === 'true';
 export const customerApi = createApi({
   reducerPath: 'customerApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: '/api',
+    baseUrl: isProxy ? '/api' : (import.meta.env.VITE_BACKEND_URL as string),
     prepareHeaders: (headers) => {
       if (token && type) {
         headers.set('authorization', `${type} ${token}`);
